@@ -1,0 +1,50 @@
+<html>
+<head>
+<script type="text/JavaScript" src="jsDraw2D.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+<div id="draw2d" style="overflow:hidden;position:relative;width:1200px;height:500px;"></div> 
+<img style="z-index: -1;overflow:hidden;position:absolute;height:562.5px;left: 0px; top: 0px;
+    -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    -webkit-transform: scaleY(-1);
+    transform: scaleY(-1);" 
+    src="poe.jpg" />
+<script type="text/javascript">
+    var gr=new jsGraphics(document.getElementById("draw2d"));
+    
+    var font=new jsFont("arial","bold","6px");
+    var redPen=new jsPen(new jsColor("red"),1);
+    
+    $.getJSON("AtlasNode.dat", function(json) {
+      var atlasPoints = [];
+      
+      console.log(json[0].data);
+      
+      json[0].data.forEach((node) => {
+        let x = node[1] - 8;
+        let y = node[2] - 55;
+        atlasPoints.push(new jsPoint(x,y));
+      });
+      
+      gr.setOrigin(new jsPoint(0,500)); 
+      gr.setCoordinateSystem("cartecian"); 
+      //gr.showGrid(20);
+
+
+      console.log(atlasPoints);
+      plotPoints(atlasPoints);
+    });
+    function plotPoints(points) 
+      { 
+          for( i in points) 
+          { 
+              gr.drawText(points[i].x.toFixed(1) + ", " + points[i].y.toFixed(1), new jsPoint(points[i].x,points[i].y),font,redPen.color,60);
+              gr.fillRectangle(new jsColor("red"),new jsPoint(points[i].x-2,points[i].y+2),4,4);
+          }
+      }
+    
+</script>
+</body>
+</html>
