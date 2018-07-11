@@ -2,13 +2,18 @@
 <head>
   <script type="text/JavaScript" src="jsDraw2D.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script type="text/JavaScript" src="tinycolor.js"></script>
 </head>
 <body>
 <div id="draw2d" style="overflow:hidden;position:relative;width:1200px;height:500px;"></div>
-<img style="z-index: -1;overflow:hidden;position:absolute;height:562.5px;left: 0px;top: 0px;
+<img style="z-index: -1;overflow:hidden;position:absolute;height:563px;left: 0px;top: 0px;
     -webkit-transform: scaleY(-1);transform: scaleY(-1);"
      src="poe.jpg"/>
+<br /><br /><br />
+<input type='file' accept="image/*" onchange="readURL(this);" />
 
+<canvas id="canvas" width="300" height="227" style="float:left"></canvas>
+<div id="color" style="width:200px;height:50px;float:left"></div>
 
 <script type="text/javascript">
   let gr = new jsGraphics(document.getElementById("draw2d"));
@@ -16,31 +21,30 @@
   let font = new jsFont("arial", "bold", "6px");
   let redPen = new jsPen(new jsColor("red"), 1);
 
-  $.getJSON("AtlasNode.dat", function (atlasJson) {
-    $.getJSON("WorldAreas.dat", function (areaJson) {
-      let atlasPoints = [];
-      let ids = [];
+  let atlasPoints = [];
+  let ids = [];
+  let areaJson;
 
+  $.getJSON("AtlasNode.dat", function (atlasJson) {
+    $.getJSON("WorldAreas.dat", function (json) {
+      areaJson = json;
       atlasJson[0].data.forEach((node) => {
         let x = node[1] - 8;
         let y = node[2] - 55;
-        atlasPoints.push(new jsPoint(x, y));
+        atlasPoints.push({x, y});
         ids.push(node[0]);
       });
 
       gr.setOrigin(new jsPoint(0, 500));
       gr.setCoordinateSystem("cartecian");
-      //gr.showGrid(20);
 
-
-      console.log(atlasPoints);
-      plotPoints(atlasPoints, ids, areaJson);
+      plotPoints(atlasPoints, ids);
     })
   });
 
   //canvas.style.height
 
-  function plotPoints(points, ids, areaJson) {
+  function plotPoints(points, ids) {
     for (let i in points) {
       gr.drawText(
           points[i].x.toFixed(1) + ", " + points[i].y.toFixed(1),
@@ -53,6 +57,114 @@
           new jsColor("red"),
           new jsPoint(points[i].x - 2, points[i].y + 2),
           4, 4);
+    }
+  }
+
+  function readURL(input) {
+    if (input.files && input.files[0]) {
+      //image height is 563px
+      const HEIGHT = 563;
+      //image width is 1000px
+      const WIDTH = 1000;
+      //search (8+1+8) = 17x17 area
+      const RECT_SIZE = 8;
+      const RECT_LENGTH = (2*(RECT_SIZE+1));
+      //Hue: 15 - 45
+      const MIN_HUE = 15, MAX_HUE = 45;
+      //Sat: 20 - 50
+      const MIN_SAT = .25, MAX_SAT = .4;
+      //Val: .25 - .60 Mostly to filter out Shaper's space background
+      const MIN_VAL = .30, MAX_VAL = .60;
+      //Threshold for map to be considered completed: 15%.
+      const THRESHOLD = .10;
+      //move Shaper's Realm to 491.8 to 500
+      const X_OFFSET = 9;
+      const Y_OFFSET = 56;
+
+
+      const getColorIndicesForCoord = (x, y, width) => {
+        const red = y * (width * 4) + x * 4;
+        return [red, red + 1, red + 2, red + 3];
+      };
+
+      var img = new Image;
+      img.onload = function() {
+        const scale = HEIGHT / img.height;
+        const width = Math.floor(scale * img.width);
+
+        let canvas = document.createElement('canvas');
+        canvas.width = Math.max(width, WIDTH);
+        canvas.height = HEIGHT;
+        let ctx = canvas.getContext('2d');
+
+        ctx.drawImage(img, Math.max(0,Math.round((WIDTH - width) / 2)), 0, width, HEIGHT);
+        let imgData = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)), 0, WIDTH, HEIGHT); //take center WIDTH x HEIGHT of canvas
+        let data = imgData.data;
+
+        //console.log(canvas.toDataURL("image/png")); //debug
+
+        //Processing
+        let matchedIds = [];
+        let matchedNames = [];
+
+        let tmpCanvas = document.createElement('canvas');
+        tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
+        let tmpCtx = tmpCanvas.getContext('2d');
+
+        for(let i = 0; i < atlasPoints.length; i++){
+          const point = {
+            x: atlasPoints[i].x + X_OFFSET,
+            y: atlasPoints[i].y + Y_OFFSET
+          };
+
+          //debug
+          /*
+          let tmpImg = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)) + point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
+          tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
+          tmpCtx.putImageData(tmpImg, 0, 0);
+          console.log("---");
+          console.log(tmpCanvas.toDataURL("image/png"));
+          */
+
+          let count = 0;
+          for(let y = point.y - RECT_SIZE; y <= point.y + RECT_SIZE; y++){
+            for(let x = point.x - RECT_SIZE; x <= point.x + RECT_SIZE; x++){
+              let coords = getColorIndicesForCoord(Math.round(x), Math.round(y), WIDTH);
+              let hsv = tinycolor({
+                r: data[coords[0]],
+                g: data[coords[1]],
+                b: data[coords[2]]
+              }).toHsv();
+              if(hsv.h >= MIN_HUE && hsv.h <= MAX_HUE && hsv.s
+                  && hsv.s >= MIN_SAT && hsv.s <= MAX_SAT
+                  && hsv.v >= MIN_VAL && hsv.v <= MAX_VAL){
+                count++;
+              }
+            }
+          }
+
+          if(count / (RECT_LENGTH * RECT_LENGTH) > THRESHOLD){
+            matchedIds.push(atlasPoints[i]);
+            matchedNames.push(areaJson[0].data[ids[i]][1]);
+          }
+
+          //debug
+          /*
+          console.log(areaJson[0].data[ids[i]][1] + " " + count);
+          console.log("---");
+          */
+        }
+        console.log(matchedNames);
+        //End Processing
+
+        //debug
+        /*
+        canvas.width = WIDTH;
+        ctx.putImageData(imgData, 0, 0);
+        console.log(canvas.toDataURL("image/png"));
+        */
+      };
+      img.src = URL.createObjectURL(input.files[0]);
     }
   }
 
