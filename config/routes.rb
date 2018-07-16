@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
-  root 'hello#index'
+  root to: 'landing#index'
+  get 'landing/index'
 
-  get 'hello/index'
-  # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
+  # Api definition
+  namespace :api do
+    namespace :v1 do
+      resources :base
+    end
+  end
 end
