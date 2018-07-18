@@ -33,3 +33,12 @@
 /node_modules
 yarn-debug.log*
 .yarn-integrity
+
+# Local Config
+config/settings.local.yml
+config/settings/*.local.yml
+config/environments/*.local.yml
+
+# RubyMine .idea
+.idea/workspace.xml
+.idea/tasks.xml

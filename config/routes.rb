@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   root to: 'landing#index'
   get 'landing/index'
@@ -6,8 +8,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # resources :base
-      get "/base" => "base#get"
-      post "/base" => "base#post"
+      get '/users' => 'users#get'
+      post '/users' => 'users#post'
     end
   end
 end
