@@ -64,3 +64,8 @@ gem 'config'
 
 # HTML parsing
 gem 'nokogiri'
+
+# Test data
+gem 'faker'
+
+
