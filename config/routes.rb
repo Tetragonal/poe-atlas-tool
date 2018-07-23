@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  root to: 'landing#index'
-  get 'landing/index'
 
   # Api definition
   namespace :api do
@@ -12,4 +10,8 @@ Rails.application.routes.draw do
       post '/users' => 'users#post'
     end
   end
+
+  root :to => "landing#index"
+  match "*path", to: "landing#index", format: false, via: :get
+
 end

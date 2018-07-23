@@ -67,5 +67,3 @@ gem 'nokogiri'
 
 # Test data
 gem 'faker'
-
-

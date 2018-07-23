@@ -9,11 +9,25 @@
 
 import Vue from 'vue'
 import App from '../app.vue'
+import VueRouter from 'vue-router'
+import Main from '../components/pages/Main'
+
+Vue.use(VueRouter);
+
+const routes = [
+  { path: '/home', component: Main }
+]
+
+const router = new VueRouter({
+  mode: 'history',
+  routes // short for `routes: routes`
+})
 
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.body.appendChild(document.createElement('app'))
   const app = new Vue({
     el,
+    router,
     render: h => h(App)
   })
 
