@@ -10,26 +10,28 @@
 import Vue from 'vue'
 import App from '../app.vue'
 import VueRouter from 'vue-router'
+import BootstrapVue from 'bootstrap-vue'
+
 import Main from '../components/pages/Main'
 
 Vue.use(VueRouter);
+Vue.use(BootstrapVue);
 
 const routes = [
-  { path: '/home', component: Main }
-]
+  { path: '/home', component: Main },
+  { path: '*', redirect: '/home' }
+];
 
 const router = new VueRouter({
   mode: 'history',
-  routes // short for `routes: routes`
-})
+  routes
+});
 
 document.addEventListener('DOMContentLoaded', () => {
-  const el = document.body.appendChild(document.createElement('app'))
+  const el = document.body.appendChild(document.createElement('app'));
   const app = new Vue({
     el,
     router,
     render: h => h(App)
-  })
-
-  console.log(app)
-})
+  });
+});
