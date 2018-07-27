@@ -67,3 +67,6 @@ gem 'nokogiri'
 
 # Test data
 gem 'faker'
+
+# Add foreign keys to database
+gem 'immigrant'
