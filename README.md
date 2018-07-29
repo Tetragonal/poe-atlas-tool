@@ -11,3 +11,14 @@ For now,
   1. Open coordinates-test/test.html
   2. Select a (borderless) fullscreen screenshot of your atlas
   3. Results are printed to console (can verify results by comparing the output array length to the in-game completion counter)
+  
+## Development setup
+    # Install dependencies
+    bundle install
+    yarn install
+    
+    # Set up database
+    rake db:migrate
+    
+    # Run server
+    rails s

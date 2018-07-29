@@ -6,34 +6,66 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-# Load maps
+require "json"
+
+# Load Atlas data
+atlas_path = File.expand_path('../../vendor/atlas/AtlasNodes', __FILE__)
+areas_path = File.expand_path('../../vendor/atlas/WorldAreas', __FILE__)
+
+Dir.foreach(atlas_path) do |filename|
+  next if filename == '.' || filename == '..'
+
+  # Load corresponding world areas data
+  puts 'Loading WorldAreas file ' + filename
+  area_file = File.open(File.join(areas_path, filename), 'r')
+  area_json = JSON.parse(area_file.read)
+
+  # Load Atlas nodes
+  puts 'Loading AtlasNodes file ' + filename
+  file = File.open(File.join(atlas_path, filename), 'r')
+  atlas_json = JSON.parse(file.read)
+  atlas_json[0]['data'].each do |node|
+    name = area_json[0]['data'][node[0]][1]
+    x = node[1] - 8
+    y = node[2] - 55
+
+    puts name + ': ' + x.to_s + ' ' + y.to_s
+    Map.create(
+        name: name,
+        atlas_x: x,
+        atlas_y: y
+    )
+  end
+
+  file.close
+end
 
 # Create fake user data
-if Rails.env.development? do
+if Rails.env.development?
   rng = Random.new(1234)
   Faker::Config.random = rng
 
   2000.times do
-    user = User.new(
-        username: Faker::User.unique.name,
+    user = User.create(
+        username: Faker::Name.unique.name,
         api_key: SecureRandom.uuid
     )
 
     # Make user's stashed maps
-    rng.rand(0, 900).times do
-      StashedMap.new(
+    rng.rand(0..200).times do
+      StashedMap.create(
           user_id: user.id,
           map_id: 1, # TODO
           public_id: Faker::Number.number(6),
-          x_coord: rng.rand(0,15),
-          y_coord: rng.rand(0,20)
+          x_coord: rng.rand(0..15),
+          y_coord: rng.rand(0..20)
       )
     end
 
     # Make user's atlas progression
-    rng.rand(0, 300).times do
-      AtlasProgression.new(
-          user_id: user_id,
+    rng.rand(0..150).times do
+      AtlasProgression.create(
+          user_id: user.id,
           map_id: 1 # TODO
       )
     end

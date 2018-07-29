@@ -63,4 +63,6 @@ class PmComposer
 end
 
 # Initialize singleton
-PmComposer.instance
+if defined?(Rails::Server)
+  PmComposer.instance
+end
