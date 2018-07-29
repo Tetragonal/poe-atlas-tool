@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  map: one
+  public_id: 1
+  x_coord: 1
+  y_coord: 1
+
+two:
+  user: two
+  map: two
+  public_id: 1
+  x_coord: 1
+  y_coord: 1
