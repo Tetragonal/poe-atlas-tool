@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This file should contain all the record creation needed to seed the database with its default values.
 # The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
 #
@@ -6,11 +8,11 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
-require "json"
+require 'json'
 
 # Load Atlas data
-atlas_path = File.expand_path('../../vendor/atlas/AtlasNodes', __FILE__)
-areas_path = File.expand_path('../../vendor/atlas/WorldAreas', __FILE__)
+atlas_path = File.expand_path('../vendor/atlas/AtlasNodes', __dir__)
+areas_path = File.expand_path('../vendor/atlas/WorldAreas', __dir__)
 
 Dir.foreach(atlas_path) do |filename|
   next if filename == '.' || filename == '..'
@@ -28,12 +30,14 @@ Dir.foreach(atlas_path) do |filename|
     name = area_json[0]['data'][node[0]][1]
     x = node[1] - 8
     y = node[2] - 55
+    is_unique = area_json[0]['data'][node[0]][69]
 
     puts name + ': ' + x.to_s + ' ' + y.to_s
     Map.create(
-        name: name,
-        atlas_x: x,
-        atlas_y: y
+      name: name,
+      atlas_x: x,
+      atlas_y: y,
+      unique: is_unique
     )
   end
 
@@ -47,26 +51,26 @@ if Rails.env.development?
 
   2000.times do
     user = User.create(
-        username: Faker::Name.unique.name,
-        api_key: SecureRandom.uuid
+      username: Faker::Name.unique.name,
+      api_key: SecureRandom.uuid
     )
 
     # Make user's stashed maps
     rng.rand(0..200).times do
       StashedMap.create(
-          user_id: user.id,
-          map_id: 1, # TODO
-          public_id: Faker::Number.number(6),
-          x_coord: rng.rand(0..15),
-          y_coord: rng.rand(0..20)
+        user_id: user.id,
+        map_id: 1, # TODO
+        public_id: Faker::Number.number(6),
+        x_coord: rng.rand(0..15),
+        y_coord: rng.rand(0..20)
       )
     end
 
     # Make user's atlas progression
     rng.rand(0..150).times do
       AtlasProgression.create(
-          user_id: user.id,
-          map_id: 1 # TODO
+        user_id: user.id,
+        map_id: 1 # TODO
       )
     end
   end
