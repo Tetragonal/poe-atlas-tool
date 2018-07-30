@@ -4,6 +4,7 @@ class CreateMaps < ActiveRecord::Migration[5.2]
       t.string :name
       t.float :atlas_x
       t.float :atlas_y
+      t.integer :tier
       t.integer :atlas_version
       t.boolean :unique
 

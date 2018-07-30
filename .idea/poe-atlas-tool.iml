@@ -32,6 +32,7 @@
     <orderEntry type="library" scope="PROVIDED" name="activejob (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activemodel (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activerecord (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
+    <orderEntry type="library" scope="PROVIDED" name="activerecord-import (v0.25.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activestorage (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="activesupport (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="addressable (v2.5.2, ruby-2.4.4-p296) [gem]" level="application" />
@@ -93,7 +94,6 @@
     <orderEntry type="library" scope="PROVIDED" name="rack-proxy (v0.6.4, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rack-test (v1.0.0, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rails (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />
-    <orderEntry type="library" scope="PROVIDED" name="rails-backup-migrate (v0.0.12, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rails-dom-testing (v2.0.3, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="rails-html-sanitizer (v1.0.4, ruby-2.4.4-p296) [gem]" level="application" />
     <orderEntry type="library" scope="PROVIDED" name="railties (v5.2.0, ruby-2.4.4-p296) [gem]" level="application" />

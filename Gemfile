@@ -70,3 +70,6 @@ gem 'faker'
 
 # Add foreign keys to database
 gem 'immigrant'
+
+# Batch import
+gem 'activerecord-import'

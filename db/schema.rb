@@ -31,9 +31,11 @@ ActiveRecord::Schema.define(version: 2018_07_26_170617) do
 
   create_table "maps", force: :cascade do |t|
     t.string "name"
-    t.integer "atlas_x"
-    t.integer "atlas_y"
+    t.float "atlas_x"
+    t.float "atlas_y"
+    t.integer "tier"
     t.integer "atlas_version"
+    t.boolean "unique"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -55,6 +57,7 @@ ActiveRecord::Schema.define(version: 2018_07_26_170617) do
   create_table "users", force: :cascade do |t|
     t.string "username"
     t.string "api_key"
+    t.datetime "public_until"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
