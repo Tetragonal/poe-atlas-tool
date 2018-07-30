@@ -18,12 +18,13 @@ class PmComposer
           # Set class-variable to be used later to fill out form
           @hash = html.at_css('input#hash')['value']
           puts @hash
+
+          # Wait at least 10 minutes between each request
+          sleep [t + (10 * 60) - Time.now, 0].max
+
         rescue StandardError
           puts 'Failed to load form data, retrying in 5 seconds'
           sleep 5
-        ensure
-          # Wait at least 10 minutes between each request
-          sleep [t + (10 * 60) - Time.now, 0].max
         end
       end
     end
@@ -63,6 +64,4 @@ class PmComposer
 end
 
 # Initialize singleton
-if defined?(Rails::Server)
-  PmComposer.instance
-end
+PmComposer.instance if defined?(Rails::Server)

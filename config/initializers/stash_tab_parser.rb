@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 # When server is started, calls PoE stash tab api and looks for maps with specific buyout
 require 'http'
 
 class StashTabParser
+  include Singleton
+
   def initialize
     Thread.new do
       # Fetch next change id
@@ -19,10 +23,41 @@ class StashTabParser
           # Parse stash tabs
           stashes = res['stashes']
           stashes.each do |tab|
-            next if tab['public']
-            # puts tab['id']
-            # puts tab['accountName']
-            # puts tab['stash']
+            next unless tab['public']
+
+            cleared = false
+
+            # Check each item in stash, looking for map
+            tab_buyout = tab['stash'].to_s.include?('111 blessed')
+            tab['items'].each do |item|
+              # Skip unless item has buyout and item is a map
+              next unless tab_buyout || item['note'].to_s.include?('111 blessed')
+              next unless item['category'].key?('maps')
+
+              puts 'found'
+
+              # Get user from db
+              user = User.find_by username: tab['accountName']
+              break if user.nil?
+
+              # Clear existing data about stash if it exists
+              unless cleared
+                StashedMap.delete_all(user_id: user.id,
+                                      public_id: tab['id'],
+                                      league_id: item['league'])
+                cleared = true
+              end
+
+              # Get league id
+              league = League.find_by name: item['league']
+              break if league.nil?
+
+              StashedMap.create(user_id: user.id,
+                                public_id: tab['id'],
+                                league_id: league.id,
+                                x_coord: item['x'],
+                                y_coord: item['y'])
+            end
           end
           puts change_id
         rescue StandardError
@@ -37,6 +72,4 @@ class StashTabParser
   end
 end
 
-if defined?(Rails::Server)
-  StashTabParser.instance
-end
+StashTabParser.instance if defined?(Rails::Server)
