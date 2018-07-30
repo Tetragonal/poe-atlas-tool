@@ -65,7 +65,7 @@ if Rails.env.development?
   map_count = Map.where('atlas_version = ' + Settings.ATLAS_VERSION.to_s).count
   puts map_count
 
-  2000.times do |i|
+  Settings.DEV_SEED_NUM.times do |i|
     puts 'User #' + i.to_s
     user = User.create(
       username: Faker::Name.unique.first_name,

@@ -1,3 +1,3 @@
-POESESSID: ''
-
-ATLAS_VERSION: 1
+POESESSID: '' # PoE cookie
+ATLAS_VERSION: 1 # Atlas version to use (corresponds to file)
+DEV_SEED_NUM: 0 # How many fake users to make on rake db:seed
