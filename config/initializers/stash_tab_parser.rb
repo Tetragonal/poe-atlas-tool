@@ -34,25 +34,31 @@ class StashTabParser
               next unless tab_buyout || item['note'].to_s.include?('111 blessed')
               next unless item['category'].key?('maps')
 
-              puts 'found'
+              puts 'found ' + item.to_s
 
               # Get user from db
               user = User.find_by username: tab['accountName']
               break if user.nil?
 
-              # Clear existing data about stash if it exists
-              unless cleared
-                StashedMap.delete_all(user_id: user.id,
-                                      public_id: tab['id'],
-                                      league_id: item['league'])
-                cleared = true
-              end
-
               # Get league id
               league = League.find_by name: item['league']
               break if league.nil?
 
+              # Clear existing data about stash if it exists
+              unless cleared
+                StashedMap.where(user_id: user.id,
+                                 public_id: tab['id'],
+                                 league_id: league.id).delete_all
+                cleared = true
+              end
+
+              # Get map id
+              map = Map.find_by(name: item['typeLine'].sub!(' Map', ''),
+                                atlas_version: Settings.ATLAS_VERSION)
+              break if map.nil?
+
               StashedMap.create(user_id: user.id,
+                                map_id: map.id,
                                 public_id: tab['id'],
                                 league_id: league.id,
                                 x_coord: item['x'],
@@ -60,8 +66,9 @@ class StashTabParser
             end
           end
           puts change_id
-        rescue StandardError
+        rescue StandardError => err
           puts 'Failed'
+          puts err
           sleep 5
         ensure
           # Wait at least 1.1 seconds between each request

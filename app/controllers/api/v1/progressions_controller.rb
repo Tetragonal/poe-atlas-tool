@@ -2,8 +2,9 @@
 
 # localhost:3000/api/v1/progressions
 class Api::V1::ProgressionsController < ActionController::API
-  def post
-    puts 'req ' + request.headers['HTTP_AUTHORIZATION'].to_s
-    head :ok, content_type: 'text/html'
+  def get
+    render json: {
+        test_message: SecureRandom.uuid
+    }.to_json
   end
 end

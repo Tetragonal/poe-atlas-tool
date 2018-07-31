@@ -5,15 +5,8 @@ require 'uri'
 
 # localhost:3000/api/v1/user
 class Api::V1::UsersController < ActionController::API
-  def get
-    render json: {
-      test_message: SecureRandom.uuid
-    }.to_json
-  end
-
   def post
-    puts params
-    if params.key?(:account_name) && PmComposer.instance.hash != nil
+    if params.key?(:account_name) && !PmComposer.instance.hash.nil?
 
       # Create if exists, or get if doesn't exist
       user = User.find_by username: params[:account_name]
@@ -40,12 +33,12 @@ class Api::V1::UsersController < ActionController::API
                       api_key: api_key,
                       public_until: 1.day.ago)
         end
-        head :ok, content_type: 'text/html'
+        head :ok
       else
-        head :internal_server_error, content_type: 'text/html'
+        head :internal_server_error
       end
     else
-      head :bad_request, content_type: 'text/html'
+      head :bad_request
     end
   end
 end
