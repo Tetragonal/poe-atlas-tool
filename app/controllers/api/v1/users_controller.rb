@@ -12,9 +12,8 @@ class Api::V1::UsersController < ActionController::API
   end
 
   def post
-    # TODO: Check user database for existing user, resend token if found
     puts params
-    if params.key?(:account_name)
+    if params.key?(:account_name) && PmComposer.instance.hash != nil
 
       # Create if exists, or get if doesn't exist
       user = User.find_by username: params[:account_name]
@@ -31,6 +30,7 @@ class Api::V1::UsersController < ActionController::API
         'API key',
         api_key
       )
+
       puts response.code
       # PoE site will return 302 Found on success, 200 OK on failure
       if response.code == '302'

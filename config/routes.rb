@@ -7,7 +7,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       # resources :base
       get '/users' => 'users#get'
-      post '/users' => 'users#post'
+      post '/users/:account_name' => 'users#post', as: 'account_name'
+
+      post '/progressions' => 'progressions#post'
     end
   end
 

@@ -10,6 +10,7 @@ class PmComposer
       loop do
         begin
           t = Time.now
+          @hash = nil
 
           # Use nokogiri to retrieve form, get value of 'hash' for use in form
           html = Nokogiri::HTML(HTTP.cookies(POESESSID: Settings.POESESSID)
