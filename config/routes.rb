@@ -6,12 +6,14 @@ Rails.application.routes.draw do
     namespace :v1 do
       post '/users/:account_name' => 'users#post', as: 'account_name'
 
-      post '/progressions' => 'progressions#post'
+      post '/progressions/:account_name' => 'progressions#post'
+      get '/progressions/:account_name' => 'progressions#get'
 
       get '/maps' => 'maps#get'
 
       get '/leagues' => 'leagues#get'
       post '/leagues/:name' => 'leagues#post'
+      patch '/leagues/:name' => 'leagues#patch'
       delete '/leagues/:name' => 'leagues#delete'
 
       namespace :admin do
