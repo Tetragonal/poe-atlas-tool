@@ -11,7 +11,7 @@ class Api::V1::LeaguesController < ActionController::API
   def post
     head :unauthorized unless request.headers['HTTP_AUTHORIZATION'].to_s == Settings.ADMIN_KEY
 
-    League.find_or_create_by(name: params[:name])
+    League.find_or_create_by(name: params[:name], active: false)
     head :ok
   end
 

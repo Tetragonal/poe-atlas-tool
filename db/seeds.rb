@@ -50,11 +50,13 @@ end
 
 # Add leagues
 League.create(
-  name: 'Standard'
+  name: 'Standard',
+  active: true
 )
 
 League.create(
-  name: 'Hardcore'
+  name: 'Hardcore',
+  active: true
 )
 
 # Create fake user data
