@@ -15,7 +15,11 @@ class StashTabParser
           t = Time.now
 
           # Fetch stash data
-          res = JSON.parse(HTTP.get('http://api.pathofexile.com/public-stash-tabs', params: { id: change_id }).to_s)
+          res = JSON.parse(
+            HTTP.use(:auto_inflate)
+                .headers('Accept-Encoding' => 'gzip')
+                .get('http://api.pathofexile.com/public-stash-tabs', params: { id: change_id }).to_s
+          )
 
           # Set next change id
           change_id = res['next_change_id']
