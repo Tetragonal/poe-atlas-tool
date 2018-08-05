@@ -8,75 +8,89 @@ class StashTabParser
 
   def initialize
     Thread.new do
-      # Fetch next change id
-      change_id = JSON.parse(HTTP.get('http://poe.ninja/api/Data/GetStats').to_s)['next_change_id']
       loop do
         begin
-          t = Time.now
+          # Fetch next change id
+          change_id = JSON.parse(HTTP.get('http://poe.ninja/api/Data/GetStats').to_s)['next_change_id']
 
-          # Fetch stash data
-          res = JSON.parse(
-            HTTP.use(:auto_inflate)
-                .headers('Accept-Encoding' => 'gzip')
-                .get('http://api.pathofexile.com/public-stash-tabs', params: { id: change_id }).to_s
-          )
+          # create HTTP client with persistent connection
+          http = HTTP.use(:auto_inflate)
+                     .headers('Accept-Encoding' => 'gzip')
+                     .persistent "http://api.pathofexile.com"
+          loop do
+            begin
+              t = Time.now
 
-          # Set next change id
-          change_id = res['next_change_id']
+              # Fetch stash data
+              res = JSON.parse(
+                  http.get('/public-stash-tabs', params: { id: change_id }).to_s
+              )
 
-          # Parse stash tabs
-          stashes = res['stashes']
-          stashes.each do |tab|
-            next unless tab['public']
+              # Set next change id
+              change_id = res['next_change_id']
 
-            cleared = false
+              # Parse stash tabs
+              stashes = res['stashes']
+              stashes.each do |tab|
+                next unless tab['public']
 
-            # Check each item in stash, looking for map
-            tab_buyout = tab['stash'].to_s.include?('111 blessed')
-            tab['items'].each do |item|
-              # Skip unless item has buyout and item is a map
-              next unless tab_buyout || item['note'].to_s.include?('111 blessed')
-              next unless item['category'].key?('maps')
+                cleared = false
 
-              puts 'found ' + item.to_s
+                # Check each item in stash, looking for map
+                tab_buyout = tab['stash'].to_s.include?('111 blessed')
+                tab['items'].each do |item|
+                  # Skip unless item has buyout and item is a map
+                  next unless tab_buyout || item['note'].to_s.include?('111 blessed')
+                  next unless item['category'].key?('maps')
 
-              # Get user from db
-              user = User.find_by username: tab['accountName']
-              break if user.nil?
+                  puts 'found ' + item.to_s
 
-              # Get league id
-              league = League.find_by name: item['league']
-              break if league.nil?
+                  # Get user from db
+                  user = User.find_by username: tab['accountName']
+                  break if user.nil?
 
-              # Clear existing data about stash if it exists
-              unless cleared
-                StashedMap.where(user_id: user.id,
-                                 public_id: tab['id'],
-                                 league_id: league.id).delete_all
-                cleared = true
+                  # Get league id
+                  league = League.find_by name: item['league']
+                  break if league.nil?
+
+                  # Clear existing data about stash if it exists
+                  unless cleared
+                    StashedMap.where(user_id: user.id,
+                                     public_id: tab['id'],
+                                     league_id: league.id).delete_all
+                    cleared = true
+                  end
+
+                  # Get map id
+                  map = Map.find_by(name: item['typeLine'].sub!(' Map', ''),
+                                    atlas_version: Settings.ATLAS_VERSION)
+                  break if map.nil?
+
+                  StashedMap.create(user_id: user.id,
+                                    map_id: map.id,
+                                    public_id: tab['id'],
+                                    league_id: league.id,
+                                    x_coord: item['x'],
+                                    y_coord: item['y'])
+                end
               end
-
-              # Get map id
-              map = Map.find_by(name: item['typeLine'].sub!(' Map', ''),
-                                atlas_version: Settings.ATLAS_VERSION)
-              break if map.nil?
-
-              StashedMap.create(user_id: user.id,
-                                map_id: map.id,
-                                public_id: tab['id'],
-                                league_id: league.id,
-                                x_coord: item['x'],
-                                y_coord: item['y'])
+              puts change_id
+            rescue StandardError => err
+              puts 'Failed to get stash data'
+              puts err
+              sleep 5
+            ensure
+              # Wait at least 1.1 seconds between each request
+              sleep [t + 1.1 - Time.now, 0].max
             end
           end
-          puts change_id
         rescue StandardError => err
-          puts 'Failed'
+          puts 'Connection to stash tab API failed'
           puts err
           sleep 5
         ensure
-          # Wait at least 1.1 seconds between each request
-          sleep [t + 1.1 - Time.now, 0].max
+          # close underlying connection when you don't need it anymore
+          http.close if http
         end
       end
     end
