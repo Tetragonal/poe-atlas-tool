@@ -8,30 +8,21 @@
 // layout file, like app/views/layouts/application.html.erb
 
 import Vue from 'vue'
-import App from '../app.vue'
-import VueRouter from 'vue-router'
 import BootstrapVue from 'bootstrap-vue'
 
-import Main from '../components/pages/Main'
+import App from '../app.vue'
+import router from '../router.js'
+import store from '../store.js'
 
-Vue.use(VueRouter);
 Vue.use(BootstrapVue);
 
-const routes = [
-  { path: '/home', component: Main },
-  { path: '*', redirect: '/home' }
-];
-
-const router = new VueRouter({
-  mode: 'history',
-  routes
-});
-
+/* Initialize vue */
 document.addEventListener('DOMContentLoaded', () => {
   const el = document.body.appendChild(document.createElement('app'));
   const app = new Vue({
     el,
     router,
+    store,
     render: h => h(App)
   });
 });
