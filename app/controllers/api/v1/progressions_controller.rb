@@ -10,12 +10,16 @@ class Api::V1::ProgressionsController < ActionController::API
   end
 
   def post
+    # Find and authenticate user
     user = User.find_by username: params[:account_name]
     return head :bad_request if user.nil?
+    return head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(request.headers['HTTP_AUTHORIZATION'].to_s, user.api_key)
 
+    # Find league
     league = League.find_by name: params[:league]
     return head :bad_request if league.nil?
 
+    # Replace user progression in league
     AtlasProgression.replace(params[:maps], user, league)
     head :ok
   end

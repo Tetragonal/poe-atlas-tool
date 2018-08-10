@@ -9,7 +9,7 @@ class Api::V1::LeaguesController < ActionController::API
   end
 
   def patch
-    head :unauthorized unless request.headers['HTTP_AUTHORIZATION'].to_s == Settings.ADMIN_KEY
+    head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(request.headers['HTTP_AUTHORIZATION'].to_s, Settings.ADMIN_KEY)
     head :bad_request unless params[:active]
 
     league = League.find_by(name: params[:name])
@@ -18,14 +18,14 @@ class Api::V1::LeaguesController < ActionController::API
   end
 
   def post
-    head :unauthorized unless request.headers['HTTP_AUTHORIZATION'].to_s == Settings.ADMIN_KEY
+    head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(request.headers['HTTP_AUTHORIZATION'].to_s, Settings.ADMIN_KEY)
 
     League.find_or_create_by(name: params[:name], active: false)
     head :ok
   end
 
   def delete
-    head :unauthorized unless request.headers['HTTP_AUTHORIZATION'].to_s == Settings.ADMIN_KEY
+    head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(request.headers['HTTP_AUTHORIZATION'].to_s, Settings.ADMIN_KEY)
 
     League.find_by(name: params[:name]).delete
     head :ok

@@ -19,6 +19,5 @@ class AtlasProgression < ApplicationRecord
       end
       AtlasProgression.import atlas_progressions
     end
-    puts 'oof'
   end
 end
