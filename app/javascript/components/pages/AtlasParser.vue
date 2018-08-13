@@ -1,6 +1,11 @@
 <template>
   <div>
-    <b-form-file v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
+    <b-form-file class="mb-3" v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
+
+    <div v-if="atlasImage">
+      <img :src="atlasImage" style="width:100%">
+      <img v-for="elem in previewImages" :src="elem">
+    </div>
 
     <div>
       <b-dropdown text="Dropdown Button" class="m-md-2">
@@ -31,7 +36,9 @@
         leagues: undefined,
         atlasFile: undefined,
 
-        completedMaps: undefined
+        completedMaps: undefined,
+        atlasImage: undefined,
+        previewImages: []
       }
     },
     async created() {
@@ -61,10 +68,10 @@
         const MIN_SAT = .25, MAX_SAT = .4;
         //Val: .25 - .60 Mostly to filter out Shaper's space background
         const MIN_VAL = .30, MAX_VAL = .60;
-        //Threshold for map to be considered completed: 15%.
+        //Pixels matched threshold for map to be considered completed: 10%.
         const THRESHOLD = .10;
         //move Shaper's Realm to 491.8 to 500
-        const X_OFFSET = 9;
+        const X_OFFSET = 8;
         const Y_OFFSET = 56;
 
 
@@ -120,6 +127,33 @@
             }
           }
           this.completedMaps = matchedNames;
+
+          // Show preview
+          canvas.width = WIDTH;
+          ctx.putImageData(imgData, 0, 0);
+          ctx.strokeStyle="#FF0000";
+
+          // Draw rectangles for preview
+          let tmpCanvas = document.createElement('canvas');
+          tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
+          let tmpCtx = tmpCanvas.getContext('2d');
+          for (let i = 0; i < this.maps.length; i++) {
+            const point = {
+              x: this.maps[i].atlas_x + X_OFFSET,
+              y: this.maps[i].atlas_y + Y_OFFSET
+            };
+
+            // O(n^2), TODO replace w/ set
+            ctx.strokeStyle = matchedNames.includes(this.maps[i]) ? "#00FF00" : "#FF0000";
+
+            ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
+
+            let tmpImg = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)) + point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
+            tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
+            tmpCtx.putImageData(tmpImg, 0, 0);
+            this.previewImages.push(tmpCanvas.toDataURL("image/png"));
+          }
+          this.atlasImage = canvas.toDataURL("image/png");
         };
 
         // Read file
