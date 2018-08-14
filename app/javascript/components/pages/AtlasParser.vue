@@ -8,19 +8,37 @@
     </div>
 
     <div>
-      <b-dropdown text="Dropdown Button" class="m-md-2">
-        <b-dropdown-item v-for="elem in leagues">{{ elem.name }}</b-dropdown-item>
+      <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'" class="m-md-2">
+        <b-dropdown-item v-for="elem in leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
       </b-dropdown>
     </div>
 
-    <!-- Completed maps-->
-    {{completedMaps ? completedMaps.length : 0}}
-    {{completedMaps ? completedMaps[15] : ''}}
-    <ul>
-      <li v-for="elem in completedMaps">
-        {{elem.name}}
-      </li>
-    </ul>
+    <div v-if="completedMaps">
+      <!-- Completed maps-->
+      Completed Maps: {{ completedMaps ? completedMaps.size : 0 }}
+      <ul>
+        <li v-for="elem in maps" v-if="!elem.unique && completedMaps.has(elem)">
+          {{ elem.name }}
+        </li>
+      </ul>
+
+      <!-- Uncompleted maps-->
+      Uncompleted Maps: {{ completedMaps ? maps.length - completedMaps.size : maps.length }}
+      <ul>
+        <li v-for="elem in maps" v-if="!elem.unique && !completedMaps.has(elem)">
+          {{ elem.name }}
+        </li>
+      </ul>
+
+      Unique Maps:
+      <ul>
+        <li v-for="elem in maps" v-if="elem.unique">
+          {{ elem.name }}
+          <b-badge pill variant="success">{{ completedMaps.has(elem) ? 'Complete' : '' }}</b-badge>
+        </li>
+      </ul>
+    </div>
+
   </div>
 </template>
 
@@ -36,14 +54,16 @@
         leagues: undefined,
         atlasFile: undefined,
 
+        selectedLeague: undefined,
+
         completedMaps: undefined,
         atlasImage: undefined,
         previewImages: []
       }
     },
     async created() {
-      let mapPromise = api.maps().get();
-      let leaguePromise = api.leagues().get();
+      let mapPromise = api.maps.get();
+      let leaguePromise = api.leagues.get();
 
       this.maps = (await mapPromise).data.maps;
       this.leagues = (await leaguePromise).data.leagues;
@@ -54,6 +74,13 @@
       }
     },
     methods: {
+      updateUser() {
+        let mapIds = [];
+        for(let map of this.completedMaps){
+          mapIds.push(map.id);
+        }
+        api.progressions.post(this.$store.state.username, this.leagueId, mapIds);
+      },
       parseScreenshot() {
         //image height is 563px
         const HEIGHT = 563;
@@ -95,7 +122,7 @@
           let data = imgData.data;
 
           //Processing
-          let matchedNames = [];
+          let matchedNames = new Set();
 
           for (let i = 0; i < this.maps.length; i++) {
 
@@ -123,7 +150,7 @@
             }
             // If passes threshold, mark the map as completed
             if (count / (RECT_LENGTH * RECT_LENGTH) > THRESHOLD) {
-              matchedNames.push(this.maps[i]);
+              matchedNames.add(this.maps[i]);
             }
           }
           this.completedMaps = matchedNames;
@@ -136,7 +163,8 @@
           // Draw rectangles for preview
           let tmpCanvas = document.createElement('canvas');
           tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
-          let tmpCtx = tmpCanvas.getContext('2d');
+          let tmpCtx = tmpCanvas.getContext('2d', {alpha: false});
+          this.previewImages = [];
           for (let i = 0; i < this.maps.length; i++) {
             const point = {
               x: this.maps[i].atlas_x + X_OFFSET,
@@ -144,8 +172,7 @@
             };
 
             // O(n^2), TODO replace w/ set
-            ctx.strokeStyle = matchedNames.includes(this.maps[i]) ? "#00FF00" : "#FF0000";
-
+            ctx.strokeStyle = matchedNames.has(this.maps[i]) ? "#00FF00" : "#FF0000";
             ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
 
             let tmpImg = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)) + point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);

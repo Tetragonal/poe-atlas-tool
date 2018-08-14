@@ -3,9 +3,11 @@
     <nav-bar></nav-bar>
 
     <div class="my-5 mx-auto" style="width: 80%">
-      <keep-alive>
-        <router-view></router-view>
-      </keep-alive>
+      <transition name="fade" mode="out-in">
+        <keep-alive>
+          <router-view></router-view>
+        </keep-alive>
+      </transition>
     </div>
   </div>
 </template>

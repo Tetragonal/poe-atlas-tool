@@ -7,14 +7,19 @@ const axios = require('axios');
 const API_URL = "/api/v1";
 
 export default {
-  maps() {
-    return {
-      get: () => axios.get(API_URL + '/maps')
-    }
+  maps: {
+    get: () => axios.get(API_URL + '/maps')
   },
-  leagues() {
-    return {
-      get: () => axios.get(API_URL + '/leagues')
-    }
+  leagues: {
+    get: () => axios.get(API_URL + '/leagues')
+  },
+  progressions: {
+    post: (apiKey, leagueId, mapIds) => axios.post(API_URL + '/progressions',
+        {leagueId, mapIds},
+        {headers: {Authorization: apiKey}})
+  },
+  login: {
+    post: (apiKey) => axios.post(API_URL + '/login',
+        {api_key: apiKey})
   }
 }

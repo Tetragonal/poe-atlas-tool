@@ -14,7 +14,7 @@
 
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <login-modal></login-modal>
+        <login-modal/>
       </b-navbar-nav>
     </b-collapse>
   </b-navbar>

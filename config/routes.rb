@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       patch '/leagues/:name' => 'leagues#patch'
       delete '/leagues/:name' => 'leagues#delete'
 
+      post '/login' => 'login#post'
       namespace :admin do
       end
     end
