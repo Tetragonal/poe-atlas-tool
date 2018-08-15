@@ -21,5 +21,8 @@ export default {
   login: {
     post: (apiKey) => axios.post(API_URL + '/login',
         {api_key: apiKey})
+  },
+  register: {
+    post: (username) => axios.post(API_URL + '/users/' + encodeURIComponent(username))
   }
 }
