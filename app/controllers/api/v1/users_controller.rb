@@ -1,22 +1,26 @@
 # frozen_string_literal: true
 
-require 'net/http'
-require 'uri'
-
 # localhost:3000/api/v1/user
 class Api::V1::UsersController < ActionController::API
   def post
-    if params.key?(:account_name) && !PmComposer.instance.hash.nil?
+    # First check for invalid POESESSID
+    return head :internal_server_error if PmComposer.instance.get_hash.nil?
 
+    if params.key?(:account_name)
       # Create if exists, or get if doesn't exist
       user = User.find_by username: params[:account_name]
-      puts user.to_s
+
       api_key = if user.nil?
                   SecureRandom.uuid
                 else
                   user.api_key
                 end
-      puts 'key ' + api_key
+
+      # 3 possibilities for response from PoE website:
+      #   1. (Success) User exists and POESESSID valid:        302 Found
+      #   2. (Failure) POESESSID invalid:                      302 Found
+      #   3. (Failure) POESESSID valid but user doesn't exist: 200 OK
+
       # Send PM to user
       response = PmComposer.instance.compose(
         params[:account_name],
@@ -24,8 +28,6 @@ class Api::V1::UsersController < ActionController::API
         api_key
       )
 
-      puts response.code
-      # PoE site will return 302 Found on success, 200 OK on failure
       if response.code == '302'
         # Create user if doesn't exist, return success
         if user.nil?
@@ -34,8 +36,9 @@ class Api::V1::UsersController < ActionController::API
                       public_until: 1.day.ago)
         end
         head :ok
-      else
-        head :internal_server_error
+      elsif response.code == '200'
+        # Couldn't send message, invalid PoE username
+        head :not_found
       end
     else
       head :bad_request

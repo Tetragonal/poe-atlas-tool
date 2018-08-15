@@ -1,9 +1,13 @@
-require 'nokogiri'
+  require 'nokogiri'
 require 'http'
 
 # Periodically refresh PoE compose webpage to maintain an updated security token
 class PmComposer
   include Singleton
+
+  def get_hash
+    @hash
+  end
 
   def initialize
     Thread.new do
