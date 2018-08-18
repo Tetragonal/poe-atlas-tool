@@ -9,8 +9,10 @@
                   v-model="formText"
                   type="text"
                   :state="formText !== '' ? null : false"
-                  placeholder="Enter your username"
-                  @keyup.enter.native="handleRegister"></b-form-input>
+                  placeholder="Enter your PoE account name"
+                  @keyup.enter.native="handleRegister"
+                  class="mb-2"></b-form-input>
+    An API key will be sent to you via in-game mail.
   </b-modal>
 </template>
 

@@ -1,11 +1,63 @@
 <template>
   <div>
-    <b-form-file class="mb-3" v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
+    <b-card :header="atlasImage ? '' : 'Atlas Parser'"
+            :img-src="atlasImage"
+            img-alt="Image"
+            img-top>
+      <!-- File Selector -->
+      <div class="card-body">
+        <b-form-file v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
+      </div>
 
-    <div v-if="atlasImage">
-      <img :src="atlasImage" style="width:100%">
-      <img v-for="elem in previewImages" :src="elem">
-    </div>
+      <transition name="fade">
+      <div v-if="previewImages.length > 0">
+        <hr>
+
+        <!-- Overview -->
+        <div class="card-body">
+          <h3 class="card-text">
+            Completion Overview
+          </h3>
+
+          <b-card-group deck>
+            <b-card header="Atlas Progress">
+              <p class="card-text">
+                {{ completedMaps.size }}/{{ maps.length }} maps completed ({{(100.0*completedMaps.size/maps.length).toFixed(0)}}%)
+              </p>
+              <b-progress class="mb-3" style="height:25px" :max="maps.length" show-value>
+                <b-progress-bar :value="completedMaps.size" variant="success"></b-progress-bar>
+                <b-progress-bar :value="maps.length - completedMaps.size" variant="secondary"></b-progress-bar>
+              </b-progress>
+            </b-card>
+            <b-card header="Map Preview">
+              <b-input-group class="mb-3"
+                             prepend="Tier"
+                             :append="'(' + Array.from(completedMaps).filter(map => map.tier === selectedPreviewTier).length + '/' + previewImages[selectedPreviewTier].length + ' completed)'">
+                <b-form-input type="number" :min="minTier" :max="maxTier" v-model.number="selectedPreviewTier"></b-form-input>
+              </b-input-group>
+
+              <span v-for="(tier, index) in previewImages" v-if="index === selectedPreviewTier">
+              <b-img v-for="map in tier" :src="map.dataURL" width="40px"
+                     v-b-tooltip :title="map.name"></b-img>
+            </span>
+            </b-card>
+          </b-card-group>
+        </div>
+
+        <hr>
+
+        <!-- Details -->
+        <div class="card-body">
+
+        <p class="card-text">
+          Some quick example text to build on the card title and make up the bulk of the card's content.
+        </p>
+        <b-button href="#" variant="primary">Go somewhere</b-button>
+
+        </div>
+      </div>
+      </transition>
+    </b-card>
 
     <div>
       <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'" class="m-md-2">
@@ -50,15 +102,22 @@
     name: "AtlasParser",
     data() {
       return {
+        // Data from API
         maps: undefined,
         leagues: undefined,
         atlasFile: undefined,
 
+        // For upload
         selectedLeague: undefined,
 
+        // Computed
         completedMaps: undefined,
         atlasImage: undefined,
-        previewImages: []
+
+        // Preview
+        previewImages: [],
+        selectedPreviewTier: 1
+
       }
     },
     async created() {
@@ -71,6 +130,26 @@
     watch: {
       atlasFile() {
         this.parseScreenshot();
+      }
+    },
+    computed: {
+      minTier() {
+        if(this.maps === undefined || this.maps.length === 0) return undefined;
+        let minTier = this.maps[0].tier;
+        for(let map in this.maps) {
+          if(map.tier < minTier ) minTier = map.tier;
+        }
+        return minTier;
+      },
+      maxTier() {
+        if(this.maps === undefined || this.maps.length === 0) return undefined;
+        let maxTier = this.maps[0].tier;
+        for(let map of this.maps) {
+          console.log(this.maps);
+          if(map.tier > maxTier ) maxTier = map.tier;
+        }
+        console.log(maxTier);
+        return maxTier;
       }
     },
     methods: {
@@ -171,14 +250,17 @@
               y: this.maps[i].atlas_y + Y_OFFSET
             };
 
-            // O(n^2), TODO replace w/ set
             ctx.strokeStyle = matchedNames.has(this.maps[i]) ? "#00FF00" : "#FF0000";
             ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
 
             let tmpImg = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)) + point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
             tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
             tmpCtx.putImageData(tmpImg, 0, 0);
-            this.previewImages.push(tmpCanvas.toDataURL("image/png"));
+            if(this.previewImages[this.maps[i].tier] === undefined) this.previewImages[this.maps[i].tier] = [];
+            this.previewImages[this.maps[i].tier].push({
+              name: this.maps[i].name,
+              dataURL: tmpCanvas.toDataURL("image/png")
+            });
           }
           this.atlasImage = canvas.toDataURL("image/png");
         };
