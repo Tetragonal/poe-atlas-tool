@@ -16,14 +16,14 @@ class StashTabParser
           # create HTTP client with persistent connection
           http = HTTP.use(:auto_inflate)
                      .headers('Accept-Encoding' => 'gzip')
-                     .persistent "http://api.pathofexile.com"
+                     .persistent 'http://api.pathofexile.com'
           loop do
             begin
               t = Time.now
 
               # Fetch stash data
               res = JSON.parse(
-                  http.get('/public-stash-tabs', params: { id: change_id }).to_s
+                http.get('/public-stash-tabs', params: { id: change_id }).to_s
               )
 
               # Set next change id
@@ -90,7 +90,7 @@ class StashTabParser
           sleep 5
         ensure
           # close underlying connection when you don't need it anymore
-          http.close if http
+          http&.close
         end
       end
     end

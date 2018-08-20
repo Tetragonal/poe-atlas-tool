@@ -14,8 +14,8 @@ export default {
     get: () => axios.get(API_URL + '/leagues')
   },
   progressions: {
-    post: (apiKey, leagueId, mapIds) => axios.post(API_URL + '/progressions',
-        {leagueId, mapIds},
+    post: (apiKey, username, leagueName, mapIds) => axios.post(API_URL + '/progressions',
+        {account_name: username, league: leagueName, maps: mapIds},
         {headers: {Authorization: apiKey}})
   },
   login: {

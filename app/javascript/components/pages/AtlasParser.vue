@@ -19,15 +19,41 @@
             Completion Overview
           </h3>
 
+          <b-alert show variant="warning">
+            Note that results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
+            <br>
+            If the image is not aligned properly, try taking the screenshot in fullscreen mode.
+          </b-alert>
+
           <b-card-group deck>
             <b-card header="Atlas Progress">
+              <h3 class="card-text">
+                {{ completedMaps.size }}/{{ maps.length }} maps completed
+                ({{(100.0*completionStats.regular.completed/completionStats.regular.count).toFixed(0)}}%)
+              </h3>
               <p class="card-text">
-                {{ completedMaps.size }}/{{ maps.length }} maps completed ({{(100.0*completedMaps.size/maps.length).toFixed(0)}}%)
+                Lowest uncompleted map: {{ lowestUncompletedMap.name }} (Tier {{ lowestUncompletedMap.tier }})
               </p>
-              <b-progress class="mb-3" style="height:25px" :max="maps.length" show-value>
-                <b-progress-bar :value="completedMaps.size" variant="success"></b-progress-bar>
-                <b-progress-bar :value="maps.length - completedMaps.size" variant="secondary"></b-progress-bar>
+
+              <hr>
+
+              <p class="card-text">
+                {{ completionStats.regular.completed }}/{{ completionStats.regular.count }} regular maps completed
+                ({{(100.0*completionStats.regular.completed/completionStats.regular.count).toFixed(0)}}%)
+              </p>
+              <b-progress class="mb-3" style="height:25px" :max="completionStats.regular.count" show-value>
+                <b-progress-bar :value="completionStats.regular.completed" variant="success"></b-progress-bar>
+                <b-progress-bar :value="completionStats.regular.count - completionStats.regular.completed" variant="secondary"></b-progress-bar>
               </b-progress>
+              <p class="card-text">
+                {{ completionStats.unique.completed }}/{{ completionStats.unique.count }} unique maps completed
+                ({{(100.0*completionStats.unique.completed/completionStats.unique.count).toFixed(0)}}%)
+              </p>
+              <b-progress class="mb-3" style="height:25px" :max="completionStats.unique.count" show-value>
+                <b-progress-bar :value="completionStats.unique.completed" variant="success"></b-progress-bar>
+                <b-progress-bar :value="completionStats.unique.count - completionStats.unique.completed" variant="secondary"></b-progress-bar>
+              </b-progress>
+              <hr>
             </b-card>
             <b-card header="Map Preview">
               <b-input-group class="mb-3"
@@ -42,28 +68,45 @@
             </span>
             </b-card>
           </b-card-group>
+
+          <b-card-group deck>
+
+          </b-card-group>
+
         </div>
 
         <hr>
 
         <!-- Details -->
         <div class="card-body">
+          <h3 class="card-text">
+            Save Atlas Progression
+          </h3>
+          <b-alert :show="!$store.state.apiKey" variant="warning">
+            To save your progression, you must be logged in.
+            <br>
+            Saving your progression will enable trading with other users
+          </b-alert>
+          <div>
+            <b-button-group>
+              <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
+                <b-dropdown-item v-for="elem in leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+              </b-dropdown>
 
-        <p class="card-text">
-          Some quick example text to build on the card title and make up the bulk of the card's content.
-        </p>
-        <b-button href="#" variant="primary">Go somewhere</b-button>
-
+              <b-button v-b-modal.submit-progressions-modal v-if="selectedLeague && $store.state.apiKey">
+                Submit
+              </b-button>
+              <b-button disabled v-else>
+                Submit
+              </b-button>
+            </b-button-group>
+          </div>
         </div>
       </div>
       </transition>
     </b-card>
 
-    <div>
-      <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'" class="m-md-2">
-        <b-dropdown-item v-for="elem in leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
-      </b-dropdown>
-    </div>
+    <submit-progressions-modal @ok="submitProgressions"></submit-progressions-modal>
 
     <div v-if="completedMaps">
       <!-- Completed maps-->
@@ -97,9 +140,11 @@
 <script>
   import tinycolor from 'tinycolor2';
   import api from '../../api.js';
+  import SubmitProgressionsModal from "../misc/SubmitProgressionsModal";
 
   export default {
     name: "AtlasParser",
+    components: {SubmitProgressionsModal},
     data() {
       return {
         // Data from API
@@ -110,7 +155,7 @@
         // For upload
         selectedLeague: undefined,
 
-        // Computed
+        // Created from screenshot
         completedMaps: undefined,
         atlasImage: undefined,
 
@@ -145,20 +190,41 @@
         if(this.maps === undefined || this.maps.length === 0) return undefined;
         let maxTier = this.maps[0].tier;
         for(let map of this.maps) {
-          console.log(this.maps);
           if(map.tier > maxTier ) maxTier = map.tier;
         }
-        console.log(maxTier);
         return maxTier;
+      },
+      lowestUncompletedMap() {
+        if(this.maps === undefined) return undefined;
+        let lowestMap = undefined;
+        for(let map of this.maps){
+          if(map.unique) continue;
+          if(!this.completedMaps.has(map)){
+            if(lowestMap === undefined || lowestMap.tier > map.tier) lowestMap = map;
+          }
+        }
+        return lowestMap;
+      },
+      completionStats() {
+        return {
+          regular: {
+            count: Array.from(this.maps).filter(map => !map.unique).length,
+            completed: Array.from(this.completedMaps).filter(map => !map.unique).length
+          },
+          unique: {
+            count: Array.from(this.maps).filter(map => map.unique).length,
+            completed: Array.from(this.completedMaps).filter(map => map.unique).length
+          }
+        }
       }
     },
     methods: {
-      updateUser() {
+      submitProgressions() {
         let mapIds = [];
         for(let map of this.completedMaps){
           mapIds.push(map.id);
         }
-        api.progressions.post(this.$store.state.username, this.leagueId, mapIds);
+        api.progressions.post(this.$store.state.apiKey, this.$store.state.username, this.selectedLeague.name, mapIds);
       },
       parseScreenshot() {
         //image height is 563px
@@ -174,8 +240,8 @@
         const MIN_SAT = .25, MAX_SAT = .4;
         //Val: .25 - .60 Mostly to filter out Shaper's space background
         const MIN_VAL = .30, MAX_VAL = .60;
-        //Pixels matched threshold for map to be considered completed: 10%.
-        const THRESHOLD = .10;
+        //Pixels matched threshold for map to be considered completed: 9%.
+        const THRESHOLD = .09;
         //move Shaper's Realm to 491.8 to 500
         const X_OFFSET = 8;
         const Y_OFFSET = 56;
@@ -253,7 +319,7 @@
             ctx.strokeStyle = matchedNames.has(this.maps[i]) ? "#00FF00" : "#FF0000";
             ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
 
-            let tmpImg = ctx.getImageData(Math.max(0,Math.round((width - WIDTH) / 2)) + point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
+            let tmpImg = ctx.getImageData(point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
             tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
             tmpCtx.putImageData(tmpImg, 0, 0);
             if(this.previewImages[this.maps[i].tier] === undefined) this.previewImages[this.maps[i].tier] = [];
