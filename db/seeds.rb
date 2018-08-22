@@ -71,6 +71,7 @@ if Rails.env.development?
     puts 'User #' + i.to_s
     user = User.create(
       username: Faker::Name.unique.first_name,
+      last_character_name: Faker::Name.unique.last_name,
       api_key: SecureRandom.uuid,
       public_until: 1.days.from_now
     )
