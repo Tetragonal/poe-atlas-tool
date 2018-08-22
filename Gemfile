@@ -73,3 +73,6 @@ gem 'immigrant'
 
 # Batch import
 gem 'activerecord-import'
+
+# Activerecord random
+gem 'randumb'

@@ -2,6 +2,49 @@
 
 # localhost:3000/api/v1/user
 class Api::V1::UsersController < ActionController::API
+
+  USERS_TO_QUERY = 50
+  def random_get
+    return head :bad_request if League.find(params[:league_id]).nil?
+
+    # Get 50 random user ids
+    user_ids = AtlasProgression
+                   .joins(:user)
+                   .where(['users.public_until > ?', Time.now()])
+                   .where(league_id: params[:league_id])
+                   .select(:user_id, :last_character_name)
+                   .distinct
+                   .order_by_rand
+                   .limit(USERS_TO_QUERY)
+                   .map(&:user_id)
+
+    trade_data = {}
+
+    # Get their progressions
+    AtlasProgression
+        .joins(:user)
+        .where(user_id: user_ids)
+        .select(:id, :last_character_name, :map_id)
+        .find_each do |progression|
+      trade_data[progression.last_character_name] ||= {}
+      trade_data[progression.last_character_name]['progressions'] ||= []
+      trade_data[progression.last_character_name]['progressions'] << progression.map_id
+    end
+
+    # Get their stashed maps
+    StashedMap
+        .joins(:user)
+        .where(user_id: user_ids)
+        .select(:id, :last_character_name, :map_id)
+        .find_each do |stashed_map|
+      trade_data[stashed_map.last_character_name] ||= {}
+      trade_data[stashed_map.last_character_name]['stashed_maps'] ||= Set[]
+      trade_data[stashed_map.last_character_name]['stashed_maps'].add(stashed_map.map_id)
+    end
+
+    render json: trade_data.to_json
+  end
+
   def post
     # First check for invalid POESESSID
     return head :internal_server_error if PmComposer.instance.get_hash.nil?
