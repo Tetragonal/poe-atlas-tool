@@ -48,6 +48,8 @@ class StashTabParser
                   # Get user from db
                   user = User.find_by username: tab['accountName']
                   break if user.nil?
+                  # Update user's info TODO make sure works
+                  user.update(last_character_name: tab['lastCharacterName']) unless user.last_character_name == tab['lastCharacterName']
 
                   # Get league id
                   league = League.find_by name: item['league']

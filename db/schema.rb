@@ -57,6 +57,7 @@ ActiveRecord::Schema.define(version: 2018_07_26_170617) do
 
   create_table "users", force: :cascade do |t|
     t.string "username"
+    t.string "last_character_name"
     t.string "api_key"
     t.datetime "public_until"
     t.datetime "created_at", null: false
