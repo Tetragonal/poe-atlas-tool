@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router';
 
 import Home from './components/pages/Home'
-import AtlasParser from './components/pages/AtlasParser'
+import AtlasParser from './components/pages/AtlasParser/AtlasParser'
 import Progressions from './components/pages/Progressions'
 import Profile from './components/pages/Profile'
 
@@ -12,7 +12,7 @@ Vue.use(VueRouter);
 
 const routes = [
   { path: '/home', name: 'home', component: Home },
-  { path: '/parser', name: 'parser', component: AtlasParser },
+  { path: '/parser', name: 'parser', component: AtlasParser, props: (route) => ({demo: route.query.demo === 'true'}) },
   { path: '/progressions', name: 'progressions', component: Progressions, meta: {auth: true} },
   { path: '/profile', name: 'profile', component: Profile, meta: {auth: true} },
   { path: '*', redirect: '/home' }

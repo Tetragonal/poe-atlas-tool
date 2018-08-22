@@ -12,7 +12,7 @@
       <p>
 
       </p>
-      <b-btn variant="primary" href="#">Atlas Parser</b-btn>
+      <b-btn variant="primary" to="/parser">Atlas Parser</b-btn>
       <b-btn variant="success" href="#">Map Trade</b-btn>
     </b-jumbotron>
   </div>
