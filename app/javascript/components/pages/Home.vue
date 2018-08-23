@@ -9,11 +9,8 @@
         progression, including a screenshot parser, map tracker, and trade tool.
       </template>
       <hr class="my-4">
-      <p>
-
-      </p>
       <b-btn variant="primary" to="/parser">Atlas Parser</b-btn>
-      <b-btn variant="success" href="#">Map Trade</b-btn>
+      <b-btn variant="success" to="/trade">Map Trade</b-btn>
     </b-jumbotron>
   </div>
 </template>

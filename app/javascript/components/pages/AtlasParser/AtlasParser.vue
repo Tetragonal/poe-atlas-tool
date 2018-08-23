@@ -9,7 +9,6 @@
         <b-form-file v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
       </div>
 
-      <transition name="fade">
 
         <!-- Instructions -->
         <div v-if="atlasImage === undefined">
@@ -106,38 +105,20 @@
               </b-button-group>
             </div>
           </div>
+
+          <!-- Completed maps-->
+          <div class="card-body">
+            <b-card header="Completed Maps">
+              <b-table striped hover small :items="maps" :fields="mapTableFields" :sort-compare="sortTable">
+                <template slot="completed" slot-scope="data">
+                  <b-badge pill variant="success">{{ completedMaps.has(data.item) ? 'Complete' : '' }}</b-badge>
+                </template>
+              </b-table>
+            </b-card>
+          </div>
         </div>
-      </transition>
     </b-card>
-
     <submit-progressions-modal @ok="submitProgressions"></submit-progressions-modal>
-
-    <div v-if="completedMaps">
-      <!-- Completed maps-->
-      Completed Maps: {{ completedMaps ? completedMaps.size : 0 }}
-      <ul>
-        <li v-for="elem in maps" v-if="!elem.unique && completedMaps.has(elem)">
-          {{ elem.name }}
-        </li>
-      </ul>
-
-      <!-- Uncompleted maps-->
-      Uncompleted Maps: {{ completedMaps ? maps.length - completedMaps.size : maps.length }}
-      <ul>
-        <li v-for="elem in maps" v-if="!elem.unique && !completedMaps.has(elem)">
-          {{ elem.name }}
-        </li>
-      </ul>
-
-      Unique Maps:
-      <ul>
-        <li v-for="elem in maps" v-if="elem.unique">
-          {{ elem.name }}
-          <b-badge pill variant="success">{{ completedMaps.has(elem) ? 'Complete' : '' }}</b-badge>
-        </li>
-      </ul>
-    </div>
-
   </div>
 </template>
 
@@ -168,7 +149,26 @@
         previewImages: [],
         selectedPreviewTier: 1,
 
-        demo: false
+        demo: false,
+
+        mapTableFields: [
+        {
+          key: 'name',
+          sortable: true
+        },
+        {
+          key: 'tier',
+          sortable: true
+        },
+        {
+          key: 'unique',
+          sortable: true,
+        },
+        {
+          key: 'completed',
+          sortable: true,
+        }
+      ],
       }
     },
     async created() {
@@ -354,6 +354,13 @@
           });
         }
         this.atlasImage = canvas.toDataURL("image/png");
+      },
+      sortTable(a, b, key) {
+        if (key === 'completed') {
+          if (this.completedMaps.has(a) && this.completedMaps.has(b)) return 0;
+          if (this.completedMaps.has(a)) return -1;
+          return 1;
+        } else return null;
       }
     }
   }
