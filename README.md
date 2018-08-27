@@ -19,6 +19,27 @@ For now,
     
     # Set up database
     rake db:migrate
+    rake db:seed
     
     # Run server
     rails s
+    
+## Production setup
+    # Install dependencies
+    bundle install
+    yarn install
+    
+    # Set up rails master key (unused for now)
+    rails credentials:edit
+    
+    # Set up database
+    RAILS_ENV=production
+    rake db:migrate
+    rake db:seed
+    
+    # Compile assets
+    rake assets:clobber
+    rake assets:precompile
+    
+    # Run server
+    rails s -e production -p80
