@@ -36,7 +36,7 @@
             <b-card-group deck>
               <b-card header="Atlas Progress">
                 <h3 class="card-text">
-                  {{ completedMaps.size }}/{{ maps.length }} maps completed
+                  {{ completedMaps.size }}/{{ $store.state.maps.length }} maps completed
                   ({{(100.0*completionStats.regular.completed/completionStats.regular.count).toFixed(0)}}%)
                 </h3>
                 <p class="card-text">
@@ -93,7 +93,7 @@
             <div>
               <b-button-group>
                 <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
-                  <b-dropdown-item v-for="elem in leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+                  <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
                 </b-dropdown>
 
                 <b-button v-b-modal.submit-progressions-modal v-if="selectedLeague && $store.state.apiKey">
@@ -109,7 +109,7 @@
           <!-- Completed maps-->
           <div class="card-body">
             <b-card header="Completed Maps">
-              <b-table striped hover small :items="maps" :fields="mapTableFields" :sort-compare="sortTable">
+              <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
                 <template slot="completed" slot-scope="data">
                   <b-badge pill variant="success">{{ completedMaps.has(data.item) ? 'Complete' : '' }}</b-badge>
                 </template>
@@ -133,10 +133,6 @@
     components: {SubmitProgressionsModal},
     data() {
       return {
-        // Data from API
-        maps: undefined,
-        leagues: undefined,
-
         // For upload
         atlasFile: undefined,
         selectedLeague: undefined,
@@ -171,13 +167,6 @@
       ],
       }
     },
-    async created() {
-      let mapPromise = api.maps.get();
-      let leaguePromise = api.leagues.get();
-
-      this.maps = (await mapPromise).data.maps;
-      this.leagues = (await leaguePromise).data.leagues;
-    },
     watch: {
       atlasFile() {
         this.readImage();
@@ -185,25 +174,25 @@
     },
     computed: {
       minTier() {
-        if(this.maps === undefined || this.maps.length === 0) return undefined;
-        let minTier = this.maps[0].tier;
-        for(let map in this.maps) {
+        if(this.$store.state.maps === undefined || this.$store.state.maps.length === 0) return undefined;
+        let minTier = this.$store.state.maps[0].tier;
+        for(let map in this.$store.state.maps) {
           if(map.tier < minTier ) minTier = map.tier;
         }
         return minTier;
       },
       maxTier() {
-        if(this.maps === undefined || this.maps.length === 0) return undefined;
-        let maxTier = this.maps[0].tier;
-        for(let map of this.maps) {
+        if(this.$store.state.maps === undefined || this.$store.state.maps.length === 0) return undefined;
+        let maxTier = this.$store.state.maps[0].tier;
+        for(let map of this.$store.state.maps) {
           if(map.tier > maxTier ) maxTier = map.tier;
         }
         return maxTier;
       },
       lowestUncompletedMap() {
-        if(this.maps === undefined) return undefined;
+        if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;
-        for(let map of this.maps){
+        for(let map of this.$store.state.maps){
           if(map.unique) continue;
           if(!this.completedMaps.has(map)){
             if(lowestMap === undefined || lowestMap.tier > map.tier) lowestMap = map;
@@ -214,11 +203,11 @@
       completionStats() {
         return {
           regular: {
-            count: Array.from(this.maps).filter(map => !map.unique).length,
+            count: Array.from(this.$store.state.maps).filter(map => !map.unique).length,
             completed: Array.from(this.completedMaps).filter(map => !map.unique).length
           },
           unique: {
-            count: Array.from(this.maps).filter(map => map.unique).length,
+            count: Array.from(this.$store.state.maps).filter(map => map.unique).length,
             completed: Array.from(this.completedMaps).filter(map => map.unique).length
           }
         }
@@ -294,11 +283,11 @@
         //Processing
         let matchedNames = new Set();
 
-        for (let i = 0; i < this.maps.length; i++) {
+        for (let i = 0; i < this.$store.state.maps.length; i++) {
 
           const point = {
-            x: this.maps[i].atlas_x + X_OFFSET,
-            y: this.maps[i].atlas_y + Y_OFFSET
+            x: this.$store.state.maps[i].atlas_x + X_OFFSET,
+            y: this.$store.state.maps[i].atlas_y + Y_OFFSET
           };
 
           // Count the number of pixels within the hsv range
@@ -320,7 +309,7 @@
           }
           // If passes threshold, mark the map as completed
           if (count / (RECT_LENGTH * RECT_LENGTH) > THRESHOLD) {
-            matchedNames.add(this.maps[i]);
+            matchedNames.add(this.$store.state.maps[i]);
           }
         }
         this.completedMaps = matchedNames;
@@ -335,21 +324,21 @@
         tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
         let tmpCtx = tmpCanvas.getContext('2d', {alpha: false});
         this.previewImages = [];
-        for (let i = 0; i < this.maps.length; i++) {
+        for (let i = 0; i < this.$store.state.maps.length; i++) {
           const point = {
-            x: this.maps[i].atlas_x + X_OFFSET,
-            y: this.maps[i].atlas_y + Y_OFFSET
+            x: this.$store.state.maps[i].atlas_x + X_OFFSET,
+            y: this.$store.state.maps[i].atlas_y + Y_OFFSET
           };
 
-          ctx.strokeStyle = matchedNames.has(this.maps[i]) ? "#00FF00" : "#FF0000";
+          ctx.strokeStyle = matchedNames.has(this.$store.state.maps[i]) ? "#00FF00" : "#FF0000";
           ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
 
           let tmpImg = ctx.getImageData(point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
           tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
           tmpCtx.putImageData(tmpImg, 0, 0);
-          if(this.previewImages[this.maps[i].tier] === undefined) this.previewImages[this.maps[i].tier] = [];
-          this.previewImages[this.maps[i].tier].push({
-            name: this.maps[i].name,
+          if(this.previewImages[this.$store.state.maps[i].tier] === undefined) this.previewImages[this.$store.state.maps[i].tier] = [];
+          this.previewImages[this.$store.state.maps[i].tier].push({
+            name: this.$store.state.maps[i].name,
             dataURL: tmpCanvas.toDataURL("image/png")
           });
         }

@@ -4,25 +4,29 @@
 
 const axios = require('axios');
 
-const API_URL = "/api/v1";
+axios.defaults.baseURL = '/api/v1';
 
 export default {
   maps: {
-    get: () => axios.get(API_URL + '/maps')
+    get: () => axios.get('/maps')
   },
   leagues: {
-    get: () => axios.get(API_URL + '/leagues')
+    get: () => axios.get('/leagues')
   },
   progressions: {
-    post: (apiKey, username, leagueName, mapIds) => axios.post(API_URL + '/progressions',
+    get: (username) => axios.get('/progressions/' + encodeURIComponent(username)),
+    post: (apiKey, username, leagueName, mapIds) => axios.post('/progressions',
         {account_name: username, league: leagueName, maps: mapIds},
         {headers: {Authorization: apiKey}})
   },
   login: {
-    post: (apiKey) => axios.post(API_URL + '/login',
+    post: (apiKey) => axios.post('/login',
         {api_key: apiKey})
   },
   register: {
-    post: (username) => axios.post(API_URL + '/users/' + encodeURIComponent(username))
+    post: (username) => axios.post('/users/' + encodeURIComponent(username))
+  },
+  users: {
+    getRandom: () => axios.get('/users')
   }
 }

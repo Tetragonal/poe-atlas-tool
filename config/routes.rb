@@ -8,7 +8,7 @@ Rails.application.routes.draw do
       get '/users/random' => 'users#random_get'
 
       post '/progressions' => 'progressions#post'
-      get '/progressions' => 'progressions#get'
+      get '/progressions/:account_name' => 'progressions#get'
 
       get '/maps' => 'maps#get'
 
@@ -24,5 +24,5 @@ Rails.application.routes.draw do
   end
 
   root to: 'landing#index'
-  match '*path', to: 'landing#index', format: false, via: :get
+  match '*path', to: 'landing#index', format: false, via: :get, constraints: lambda{ |req| !req.env['PATH_INFO'].start_with?('/api') }
 end
