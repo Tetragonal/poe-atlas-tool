@@ -67,7 +67,7 @@
                 <b-input-group class="mb-3"
                                prepend="Tier"
                                :append="'(' + Array.from(completedMaps).filter(map => map.tier === selectedPreviewTier).length + '/' + previewImages[selectedPreviewTier].length + ' completed)'">
-                  <b-form-input type="number" :min="minTier" :max="maxTier" v-model.number="selectedPreviewTier"></b-form-input>
+                  <b-form-input type="number" :min="$store.getters.minTier" :max="$store.getters.maxTier" v-model.number="selectedPreviewTier"></b-form-input>
                 </b-input-group>
 
                 <span v-for="(tier, index) in previewImages" v-if="index === selectedPreviewTier">
@@ -148,23 +148,23 @@
         demo: false,
 
         mapTableFields: [
-        {
-          key: 'name',
-          sortable: true
-        },
-        {
-          key: 'tier',
-          sortable: true
-        },
-        {
-          key: 'unique',
-          sortable: true,
-        },
-        {
-          key: 'completed',
-          sortable: true,
-        }
-      ],
+          {
+            key: 'name',
+            sortable: true
+          },
+          {
+            key: 'tier',
+            sortable: true
+          },
+          {
+            key: 'unique',
+            sortable: true,
+          },
+          {
+            key: 'completed',
+            sortable: true,
+          }
+        ],
       }
     },
     watch: {
@@ -173,22 +173,6 @@
       }
     },
     computed: {
-      minTier() {
-        if(this.$store.state.maps === undefined || this.$store.state.maps.length === 0) return undefined;
-        let minTier = this.$store.state.maps[0].tier;
-        for(let map in this.$store.state.maps) {
-          if(map.tier < minTier ) minTier = map.tier;
-        }
-        return minTier;
-      },
-      maxTier() {
-        if(this.$store.state.maps === undefined || this.$store.state.maps.length === 0) return undefined;
-        let maxTier = this.$store.state.maps[0].tier;
-        for(let map of this.$store.state.maps) {
-          if(map.tier > maxTier ) maxTier = map.tier;
-        }
-        return maxTier;
-      },
       lowestUncompletedMap() {
         if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;

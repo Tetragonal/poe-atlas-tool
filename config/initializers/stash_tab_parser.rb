@@ -11,7 +11,7 @@ class StashTabParser
       loop do
         begin
           # Fetch next change id
-          change_id = JSON.parse(HTTP.get('http://poe.ninja/api/Data/GetStats').to_s)['next_change_id']
+          change_id = JSON.parse(HTTP.get('https://poe.ninja/api/Data/GetStats').to_s)['next_change_id']
 
           # create HTTP client with persistent connection
           http = HTTP.use(:auto_inflate)

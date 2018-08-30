@@ -7,8 +7,12 @@ Rails.application.routes.draw do
       post '/users/:account_name' => 'users#post'
       get '/users/random' => 'users#random_get'
 
-      post '/progressions' => 'progressions#post'
+      post '/progressions/:account_name' => 'progressions#post'
       get '/progressions/:account_name' => 'progressions#get'
+
+      post '/stashed_maps/:account_name' => 'stashed_maps#post'
+      get '/stashed_maps/:account_name' => 'stashed_maps#get'
+
 
       get '/maps' => 'maps#get'
 
@@ -18,6 +22,7 @@ Rails.application.routes.draw do
       delete '/leagues/:name' => 'leagues#delete'
 
       post '/login' => 'login#post'
+
       namespace :admin do
       end
     end

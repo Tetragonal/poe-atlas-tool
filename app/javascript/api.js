@@ -1,5 +1,5 @@
 /**
- * Contains front-end API endpoints
+ * Contains front-end methods to call API
  */
 
 const axios = require('axios');
@@ -14,10 +14,15 @@ export default {
     get: () => axios.get('/leagues')
   },
   progressions: {
-    get: (username) => axios.get('/progressions/' + encodeURIComponent(username)),
-    post: (apiKey, username, leagueName, mapIds) => axios.post('/progressions',
-        {account_name: username, league: leagueName, maps: mapIds},
+    get: (username, leagueId) => axios.get('/progressions/' + encodeURIComponent(username),
+        {params: {league_id: leagueId}}),
+    post: (apiKey, username, leagueName, mapIds) => axios.post('/progressions/' + encodeURIComponent(username),
+        {league: leagueName, maps: mapIds},
         {headers: {Authorization: apiKey}})
+  },
+  stashedMaps: {
+    get: (username, leagueId) => axios.get('/stashed_maps/' + encodeURIComponent(username),
+        {params: {league_id: leagueId}})
   },
   login: {
     post: (apiKey) => axios.post('/login',
@@ -27,6 +32,6 @@ export default {
     post: (username) => axios.post('/users/' + encodeURIComponent(username))
   },
   users: {
-    getRandom: () => axios.get('/users')
+    getRandom: (leagueId) => axios.get('/users/random', {params: {league_id: leagueId}})
   }
 }

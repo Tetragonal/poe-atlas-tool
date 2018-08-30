@@ -5,7 +5,7 @@ class Api::V1::UsersController < ActionController::API
 
   USERS_TO_QUERY = 50
   def random_get
-    return head :bad_request if League.find(params[:league_id]).nil?
+    return head :bad_request if League.find_by(id: params[:league_id]).nil?
 
     # Get 50 random user ids
     user_ids = AtlasProgression
@@ -40,6 +40,12 @@ class Api::V1::UsersController < ActionController::API
       trade_data[stashed_map.last_character_name] ||= {}
       trade_data[stashed_map.last_character_name]['stashed_maps'] ||= Set[]
       trade_data[stashed_map.last_character_name]['stashed_maps'].add(stashed_map.map_id)
+    end
+
+    # Initialize undefined
+    trade_data.each do |_, user_data|
+      user_data['progressions'] ||= []
+      user_data['stashed_maps'] ||= []
     end
 
     render json: trade_data.to_json

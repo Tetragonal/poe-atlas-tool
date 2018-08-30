@@ -13,6 +13,31 @@ export default new Vuex.Store({
     maps: undefined,
     leagues: undefined
   },
+  getters: {
+    minTier: state => {
+      if(state.maps === undefined || state.maps.length === 0) return undefined;
+      let minTier = state.maps[0].tier;
+      for(let map in state.maps) {
+        if(map.tier < minTier ) minTier = map.tier;
+      }
+      return minTier;
+    },
+    maxTier: state => {
+      if(state.maps === undefined || state.maps.length === 0) return undefined;
+      let maxTier = state.maps[0].tier;
+      for(let map of state.maps) {
+        if(map.tier > maxTier ) maxTier = map.tier;
+      }
+      return maxTier;
+    },
+    mapIdToTier: state => {
+      if(state.maps === undefined || state.maps.length === 0) return undefined;
+      return state.maps.reduce((map, obj) => {
+        map[obj.id] = obj.tier;
+        return map;
+      }, {});
+    }
+  },
   mutations: {
     setUsername (state, username) {
       state.username = username;
