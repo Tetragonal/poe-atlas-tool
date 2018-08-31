@@ -34,7 +34,6 @@
 
             this.$refs.loginModal.hide();
           } catch (err) {
-            console.log(err);
             // TODO handle incorrect api key
           }
         }

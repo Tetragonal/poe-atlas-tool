@@ -15,15 +15,15 @@
     <div v-else>
       <b-card header="Map Trade">
         Placeholder
-        <b-table striped hover small :items="tradeTableData" :fields="tradeTableFields">
+        <b-table striped hover small :items="tradeTableData" :fields="tradeTableFields" :sort-compare="sortTable">
           <template slot="completed" slot-scope="data">
-            {{data.item.uncompletedMaps.length}}
+            {{data.item.raw.progressions.length}}
           </template>
           <template slot="mapsOwned" slot-scope="data">
             {{data.item.stashedMaps.length}}
           </template>
           <template slot="trade" slot-scope="data">
-            <b-button>Trade</b-button>
+            <b-button>Trade ({{data.item.diff.reduce((sum, d) => sum + Math.min(d.ownMaps.length, d.theirMaps.length), 0)}})</b-button>
           </template>
         </b-table>
 
@@ -99,14 +99,16 @@
           // Calculate maps
           const uncompletedMaps = this.$store.state.maps.filter(map => !user.progressions.includes(map.id));
           const userProgressionSet = new Set(user.progressions);
+          const userStashedMapSet = new Set(user.stashed_maps);
+
+          const ownStashedMapIds = new Set(this.ownStashedMaps.map(map => map.map_id));
 
           let diff = [];
           for (let i = this.$store.getters.minTier; i <= this.$store.getters.maxTier; i++) {
-            console.log(username + ' ' + JSON.stringify(user));
             diff.push({
               tier: i,
-              ownMaps: this.ownStashedMaps.filter(mapId => i === this.$store.getters.mapIdToTier[mapId] && !userProgressionSet.has(mapId)),
-              theirMaps: user.stashed_maps.filter(mapId => i === this.$store.getters.mapIdToTier[mapId] && !ownProgressionSet.has(mapId)),
+              ownMaps: this.ownStashedMaps.filter(map => i === this.$store.getters.mapIdToTier[map.map_id] && !userProgressionSet.has(map.map_id) && !userStashedMapSet.has(map.map_id)),
+              theirMaps: user.stashed_maps.filter(mapId => i === this.$store.getters.mapIdToTier[mapId] && !ownProgressionSet.has(mapId) && !ownStashedMapIds.has(mapId)),
             });
           }
 
@@ -132,12 +134,23 @@
         }
       },
       async getRandomUsers() {
-        this.randomUsers = (await api.users.getRandom(this.selectedLeague.id)).data;
+        this.randomUsers = (await api.users.getRandom(this.$store.state.username, this.selectedLeague.id)).data;
       },
       async refresh() {
         this.loadOwnProgression();
         this.getRandomUsers();
-      }
+      },
+      sortTable(a, b, key) {
+        switch(key) {
+          case 'completed':
+            return a.raw.progressions.length - b.raw.progressions.length;
+          case 'mapsOwned':
+            return a.stashedMaps.length - b.stashedMaps.length;
+          default:
+            return null;
+        }
+      },
+      log(d){console.log(JSON.stringify(d))}
     }
   }
 </script>

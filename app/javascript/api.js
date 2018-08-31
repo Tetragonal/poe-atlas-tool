@@ -32,6 +32,6 @@ export default {
     post: (username) => axios.post('/users/' + encodeURIComponent(username))
   },
   users: {
-    getRandom: (leagueId) => axios.get('/users/random', {params: {league_id: leagueId}})
+    getRandom: (username, leagueId) => axios.get('/users/' + encodeURIComponent(username) + '/random', {params: {league_id: leagueId}})
   }
 }

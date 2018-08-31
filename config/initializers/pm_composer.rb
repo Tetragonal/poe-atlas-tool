@@ -21,7 +21,7 @@ class PmComposer
                                     .get('https://www.pathofexile.com/private-messages/compose').to_s)
 
           # Set class-variable to be used later to fill out form
-          @hash = html.at_css('input#hash')['value']
+          @hash = html.at_css('input[name=\'hash\']')['value']
           puts @hash
 
           # Wait at least 10 minutes between each request

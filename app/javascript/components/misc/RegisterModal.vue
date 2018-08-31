@@ -12,7 +12,7 @@
                   placeholder="Enter your PoE account name"
                   @keyup.enter.native="handleRegister"
                   class="mb-2"></b-form-input>
-    An API key will be sent to you via in-game mail.
+    An API key will be sent to you via in-game mail, which you can use to log in.
   </b-modal>
 </template>
 

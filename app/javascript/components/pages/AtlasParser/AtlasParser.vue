@@ -30,7 +30,7 @@
             <b-alert show variant="warning">
               Note that results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
               <br>
-              If the image is not aligned properly, try taking the screenshot in fullscreen mode.
+              If the image is not aligned properly, try taking the screenshot again in fullscreen mode.
             </b-alert>
 
             <b-card-group deck>
@@ -110,6 +110,9 @@
           <div class="card-body">
             <b-card header="Completed Maps">
               <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
+                <template slot="unique" slot-scope="data">
+                  <b-badge pill variant="warning">{{ data.item.unique ? 'Unique' : '' }}</b-badge>
+                </template>
                 <template slot="completed" slot-scope="data">
                   <b-badge pill variant="success">{{ completedMaps.has(data.item) ? 'Complete' : '' }}</b-badge>
                 </template>
@@ -125,8 +128,8 @@
 <script>
   import tinycolor from 'tinycolor2';
   import api from '../../../api.js';
-  import SubmitProgressionsModal from "../../misc/SubmitProgressionsModal";
-  import demoAtlas from './demo.jpg';
+  import SubmitProgressionsModal from "./SubmitProgressionsModal";
+  import demoAtlas from '../../../../../public/images/demo.jpg';
 
   export default {
     name: "AtlasParser",
@@ -332,6 +335,10 @@
         if (key === 'completed') {
           if (this.completedMaps.has(a) && this.completedMaps.has(b)) return 0;
           if (this.completedMaps.has(a)) return -1;
+          return 1;
+        } else if (key === 'unique') {
+          if (a.unique && b.unique) return 0;
+          if (a.unique) return -1;
           return 1;
         } else return null;
       }
