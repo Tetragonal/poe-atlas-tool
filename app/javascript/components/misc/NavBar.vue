@@ -11,6 +11,7 @@
       <b-navbar-nav>
         <b-nav-item to="/home">Home</b-nav-item>
         <b-nav-item to="/parser">Atlas Parser</b-nav-item>
+        <b-nav-item to="/trade">Map Trade</b-nav-item>
       </b-navbar-nav>
 
       <!-- Right aligned nav items -->

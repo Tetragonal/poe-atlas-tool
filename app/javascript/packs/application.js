@@ -9,11 +9,14 @@
 
 import Vue from 'vue'
 import BootstrapVue from 'bootstrap-vue'
+import VueClipboards from 'vue-clipboards';
 
 import App from '../app.vue'
 import router from '../router.js'
 import store from '../store.js'
+import '../mixin.js'
 
+Vue.use(VueClipboards);
 Vue.use(BootstrapVue);
 
 /* Initialize vue */

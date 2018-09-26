@@ -6,11 +6,13 @@
            @shown="formText = ''; $refs.loginInput.focus()"
            ref="loginModal">
     <b-form-input ref="loginInput"
+                  class="mb-3"
                   v-model="formText"
                   type="text"
                   :state="formText !== '' ? null : false"
                   placeholder="Enter your API key"
                   @keyup.enter.native="handleLogin"></b-form-input>
+    <b-alert :show="error" variant="danger">{{ errorText }}</b-alert>
   </b-modal>
 </template>
 
@@ -21,12 +23,16 @@
     name: "LoginModal",
     data() {
       return {
-        formText: ''
+        formText: '',
+        error: false,
+        errorText: ''
       }
     },
     methods: {
       async handleLogin(e) {
         e.preventDefault();
+        this.error = false;
+        this.errorText = '';
         if (this.formText !== '') {
           try {
             this.$store.commit('setUsername', (await api.login.post(this.formText)).data.username);
@@ -34,8 +40,18 @@
 
             this.$refs.loginModal.hide();
           } catch (err) {
-            console.log(err);
-            // TODO handle incorrect api key
+            this.error = true;
+            if(err.response){
+              switch (err.response.status) {
+                case 401: // Unauthorized
+                  this.errorText = 'Invalid API key. If you have already registered, the key should be in your PoE account mail.';
+                  break;
+                default: // 500
+                  this.errorText = 'An unknown error occurred.';
+                  break;
+              }
+            }
+            else this.errorText = 'Could not login (check internet connection)';
           }
         }
       }

@@ -16,7 +16,10 @@
   import NavBar from "./components/misc/NavBar";
   export default {
     name: 'App',
-    components: {NavBar}
+    components: {NavBar},
+    created() {
+      this.$store.commit('loadAtlasData');
+    }
   }
 </script>
 

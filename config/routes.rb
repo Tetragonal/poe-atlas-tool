@@ -5,10 +5,15 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post '/users/:account_name' => 'users#post'
-      get '/users/random' => 'users#random_get'
+      post '/users/:account_name/set_public' => 'users#set_public'
+      get '/users/:account_name/random' => 'users#random_get'
 
-      post '/progressions' => 'progressions#post'
-      get '/progressions' => 'progressions#get'
+      post '/progressions/:account_name' => 'progressions#post'
+      get '/progressions/:account_name' => 'progressions#get'
+
+      post '/stashed_maps/:account_name' => 'stashed_maps#post'
+      get '/stashed_maps/:account_name' => 'stashed_maps#get'
+
 
       get '/maps' => 'maps#get'
 
@@ -18,11 +23,12 @@ Rails.application.routes.draw do
       delete '/leagues/:name' => 'leagues#delete'
 
       post '/login' => 'login#post'
+
       namespace :admin do
       end
     end
   end
 
   root to: 'landing#index'
-  match '*path', to: 'landing#index', format: false, via: :get
+  match '*path', to: 'landing#index', format: false, via: :get, constraints: lambda{ |req| !req.env['PATH_INFO'].start_with?('/api') }
 end

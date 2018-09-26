@@ -22,6 +22,7 @@ For now,
     rake db:seed
     
     # Run server
+    ruby .\bin\webpack-dev-server
     rails s
     
 ## Production setup
@@ -40,5 +41,9 @@ For now,
     rake assets:clobber
     rake assets:precompile
     
-    # Run server
+    # Run server (no nginx)
     rails s -e production -p80
+    
+    # Run server (nginx)
+    # Config in puma.rb
+    rails s -e production

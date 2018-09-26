@@ -5,12 +5,14 @@ class Api::V1::UsersController < ActionController::API
 
   USERS_TO_QUERY = 50
   def random_get
-    return head :bad_request if League.find(params[:league_id]).nil?
+    return head :bad_request if User.find_by(username: params[:account_name]).nil?
+    return head :bad_request if League.find_by(id: params[:league_id]).nil?
 
     # Get 50 random user ids
     user_ids = AtlasProgression
                    .joins(:user)
                    .where(['users.public_until > ?', Time.now()])
+                   .where.not(users: {username: params[:account_name]})
                    .where(league_id: params[:league_id])
                    .select(:user_id, :last_character_name)
                    .distinct
@@ -42,7 +44,26 @@ class Api::V1::UsersController < ActionController::API
       trade_data[stashed_map.last_character_name]['stashed_maps'].add(stashed_map.map_id)
     end
 
+    # Initialize undefined
+    trade_data.each do |_, user_data|
+      user_data['progressions'] ||= []
+      user_data['stashed_maps'] ||= []
+    end
+
     render json: trade_data.to_json
+  end
+
+  def set_public
+    user = User.find_by(username: params[:account_name])
+
+    return head :bad_request if user.nil?
+    return head :bad_request if params[:api_key].nil?
+    return head :bad_request if [true, false].exclude?(params[:public])
+
+    return head :unauthorized unless ActiveSupport::SecurityUtils.secure_compare(params[:api_key], user.api_key)
+
+    user.set_public(params[:public])
+    head :ok
   end
 
   def post

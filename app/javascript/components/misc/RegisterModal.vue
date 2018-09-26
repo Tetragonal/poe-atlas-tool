@@ -12,7 +12,8 @@
                   placeholder="Enter your PoE account name"
                   @keyup.enter.native="handleRegister"
                   class="mb-2"></b-form-input>
-    An API key will be sent to you via in-game mail.
+    An API key will be sent to you via in-game mail, which you can use to log in.
+    <b-alert class="mt-2" :show="error" variant="danger">{{ errorText }}</b-alert>
   </b-modal>
 </template>
 
@@ -23,20 +24,34 @@
     name: "RegisterModal",
     data() {
       return {
-        formText: ''
+        formText: '',
+        error: false,
+        errorText: ''
       }
     },
     methods: {
       async handleRegister(e) {
         e.preventDefault();
+        this.error = false;
+        this.errorText = '';
         if (this.formText !== '') {
           try {
             await api.register.post(this.formText);
 
             this.$refs.registerModal.hide();
           } catch (err) {
-            alert(err.response.status);
-            // TODO handle incorrect username
+            this.error = true;
+            if(err.response){
+              switch (err.response.status) {
+                case 401: // Unauthorized
+                  this.errorText = 'Invalid API key. If you have already registered, the key should be in your PoE account mail.';
+                  break;
+                default: // 500
+                  this.errorText = 'An unknown error occurred.';
+                  break;
+              }
+            }
+            else this.errorText = 'Could not login (check internet connection)';
           }
         }
       }

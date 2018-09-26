@@ -9,7 +9,6 @@
         <b-form-file v-model="atlasFile" accept="image/*" placeholder="Choose a file..."></b-form-file>
       </div>
 
-      <transition name="fade">
 
         <!-- Instructions -->
         <div v-if="atlasImage === undefined">
@@ -29,15 +28,15 @@
             </h3>
 
             <b-alert show variant="warning">
-              Note that results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
+              Right now the results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
               <br>
-              If the image is not aligned properly, try taking the screenshot in fullscreen mode.
+              If the image is not aligned properly, try taking the screenshot again in fullscreen mode.
             </b-alert>
 
             <b-card-group deck>
               <b-card header="Atlas Progress">
                 <h3 class="card-text">
-                  {{ completedMaps.size }}/{{ maps.length }} maps completed
+                  {{ completedMaps.size }}/{{ $store.state.maps.length }} maps completed
                   ({{(100.0*completionStats.regular.completed/completionStats.regular.count).toFixed(0)}}%)
                 </h3>
                 <p class="card-text">
@@ -68,7 +67,7 @@
                 <b-input-group class="mb-3"
                                prepend="Tier"
                                :append="'(' + Array.from(completedMaps).filter(map => map.tier === selectedPreviewTier).length + '/' + previewImages[selectedPreviewTier].length + ' completed)'">
-                  <b-form-input type="number" :min="minTier" :max="maxTier" v-model.number="selectedPreviewTier"></b-form-input>
+                  <b-form-input type="number" :min="$store.getters.minTier" :max="$store.getters.maxTier" v-model.number="selectedPreviewTier"></b-form-input>
                 </b-input-group>
 
                 <span v-for="(tier, index) in previewImages" v-if="index === selectedPreviewTier">
@@ -89,12 +88,12 @@
             <b-alert :show="!$store.state.apiKey" variant="warning">
               To save your progression, you must be logged in.
               <br>
-              Doing this will allow you to easily search for users to trade with.
+              Doing this will let you search for users with similar atlas progression to trade with.
             </b-alert>
             <div>
               <b-button-group>
                 <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
-                  <b-dropdown-item v-for="elem in leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+                  <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
                 </b-dropdown>
 
                 <b-button v-b-modal.submit-progressions-modal v-if="selectedLeague && $store.state.apiKey">
@@ -106,56 +105,50 @@
               </b-button-group>
             </div>
           </div>
+
+          <!-- Completed maps-->
+          <div class="card-body">
+            <b-card>
+              <div slot="header">
+                Atlas Progression
+                <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
+                  <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+                </b-dropdown>
+                <b-button size="sm" @click="openTab(generateTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique(id))))">Open Trade Link</b-button>
+              </div>
+              <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
+                <template slot="HEAD_selected" slot-scope="data">
+                  <b-form-checkbox @click.native.stop v-model="allSelected" class="table-checkbox"></b-form-checkbox>
+                </template>
+                <template slot="selected" slot-scope="data">
+                  <b-form-checkbox v-model="checked[data.item.id]" v-if="!completedMaps.has(data.item)" class="table-checkbox"></b-form-checkbox>
+                </template>
+                <template slot="unique" slot-scope="data">
+                  <b-badge pill variant="warning">{{ data.item.unique ? 'Unique' : '' }}</b-badge>
+                </template>
+                <template slot="completed" slot-scope="data">
+                  <b-badge pill variant="success">{{ completedMaps.has(data.item) ? 'Complete' : '' }}</b-badge>
+                </template>
+              </b-table>
+            </b-card>
+          </div>
         </div>
-      </transition>
     </b-card>
-
     <submit-progressions-modal @ok="submitProgressions"></submit-progressions-modal>
-
-    <div v-if="completedMaps">
-      <!-- Completed maps-->
-      Completed Maps: {{ completedMaps ? completedMaps.size : 0 }}
-      <ul>
-        <li v-for="elem in maps" v-if="!elem.unique && completedMaps.has(elem)">
-          {{ elem.name }}
-        </li>
-      </ul>
-
-      <!-- Uncompleted maps-->
-      Uncompleted Maps: {{ completedMaps ? maps.length - completedMaps.size : maps.length }}
-      <ul>
-        <li v-for="elem in maps" v-if="!elem.unique && !completedMaps.has(elem)">
-          {{ elem.name }}
-        </li>
-      </ul>
-
-      Unique Maps:
-      <ul>
-        <li v-for="elem in maps" v-if="elem.unique">
-          {{ elem.name }}
-          <b-badge pill variant="success">{{ completedMaps.has(elem) ? 'Complete' : '' }}</b-badge>
-        </li>
-      </ul>
-    </div>
-
   </div>
 </template>
 
 <script>
   import tinycolor from 'tinycolor2';
   import api from '../../../api.js';
-  import SubmitProgressionsModal from "../../misc/SubmitProgressionsModal";
-  import demoAtlas from './demo.jpg';
+  import SubmitProgressionsModal from "./SubmitProgressionsModal";
+  import demoAtlas from '../../../../../public/images/demo.jpg';
 
   export default {
     name: "AtlasParser",
     components: {SubmitProgressionsModal},
     data() {
       return {
-        // Data from API
-        maps: undefined,
-        leagues: undefined,
-
         // For upload
         atlasFile: undefined,
         selectedLeague: undefined,
@@ -168,42 +161,59 @@
         previewImages: [],
         selectedPreviewTier: 1,
 
-        demo: false
-      }
-    },
-    async created() {
-      let mapPromise = api.maps.get();
-      let leaguePromise = api.leagues.get();
+        demo: false,
 
-      this.maps = (await mapPromise).data.maps;
-      this.leagues = (await leaguePromise).data.leagues;
+        mapTableFields: [
+          {
+            key: 'selected',
+            sortable: false
+          },
+          {
+            key: 'name',
+            sortable: true
+          },
+          {
+            key: 'tier',
+            sortable: true
+          },
+          {
+            key: 'unique',
+            sortable: true,
+          },
+          {
+            key: 'completed',
+            sortable: true,
+          }
+        ],
+        checked: {},
+        allSelected: false,
+        selectedLeague: undefined
+      }
     },
     watch: {
       atlasFile() {
         this.readImage();
+      },
+      allSelected(newVal) {
+        for (let map of this.$store.state.maps) {
+          this.selected[map.id] = newVal;
+        }
       }
     },
     computed: {
-      minTier() {
-        if(this.maps === undefined || this.maps.length === 0) return undefined;
-        let minTier = this.maps[0].tier;
-        for(let map in this.maps) {
-          if(map.tier < minTier ) minTier = map.tier;
+      selectedIds() {
+        let selected = [];
+        for (let id in this.checked) {
+          if (this.checked[id]) {
+            seletced.push(id);
+          }
         }
-        return minTier;
-      },
-      maxTier() {
-        if(this.maps === undefined || this.maps.length === 0) return undefined;
-        let maxTier = this.maps[0].tier;
-        for(let map of this.maps) {
-          if(map.tier > maxTier ) maxTier = map.tier;
-        }
-        return maxTier;
+        return selected;
       },
       lowestUncompletedMap() {
-        if(this.maps === undefined) return undefined;
+        if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;
-        for(let map of this.maps){
+        for(let map of this.$store.state.maps){
           if(map.unique) continue;
           if(!this.completedMaps.has(map)){
             if(lowestMap === undefined || lowestMap.tier > map.tier) lowestMap = map;
@@ -214,11 +224,11 @@
       completionStats() {
         return {
           regular: {
-            count: Array.from(this.maps).filter(map => !map.unique).length,
+            count: Array.from(this.$store.state.maps).filter(map => !map.unique).length,
             completed: Array.from(this.completedMaps).filter(map => !map.unique).length
           },
           unique: {
-            count: Array.from(this.maps).filter(map => map.unique).length,
+            count: Array.from(this.$store.state.maps).filter(map => map.unique).length,
             completed: Array.from(this.completedMaps).filter(map => map.unique).length
           }
         }
@@ -294,11 +304,11 @@
         //Processing
         let matchedNames = new Set();
 
-        for (let i = 0; i < this.maps.length; i++) {
+        for (let i = 0; i < this.$store.state.maps.length; i++) {
 
           const point = {
-            x: this.maps[i].atlas_x + X_OFFSET,
-            y: this.maps[i].atlas_y + Y_OFFSET
+            x: this.$store.state.maps[i].atlas_x + X_OFFSET,
+            y: this.$store.state.maps[i].atlas_y + Y_OFFSET
           };
 
           // Count the number of pixels within the hsv range
@@ -320,7 +330,7 @@
           }
           // If passes threshold, mark the map as completed
           if (count / (RECT_LENGTH * RECT_LENGTH) > THRESHOLD) {
-            matchedNames.add(this.maps[i]);
+            matchedNames.add(this.$store.state.maps[i]);
           }
         }
         this.completedMaps = matchedNames;
@@ -335,26 +345,42 @@
         tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
         let tmpCtx = tmpCanvas.getContext('2d', {alpha: false});
         this.previewImages = [];
-        for (let i = 0; i < this.maps.length; i++) {
+        for (let i = 0; i < this.$store.state.maps.length; i++) {
           const point = {
-            x: this.maps[i].atlas_x + X_OFFSET,
-            y: this.maps[i].atlas_y + Y_OFFSET
+            x: this.$store.state.maps[i].atlas_x + X_OFFSET,
+            y: this.$store.state.maps[i].atlas_y + Y_OFFSET
           };
 
-          ctx.strokeStyle = matchedNames.has(this.maps[i]) ? "#00FF00" : "#FF0000";
+          ctx.strokeStyle = matchedNames.has(this.$store.state.maps[i]) ? "#00FF00" : "#FF0000";
           ctx.strokeRect(point.x - RECT_SIZE/2, point.y - RECT_SIZE/2, RECT_SIZE, RECT_SIZE);
 
           let tmpImg = ctx.getImageData(point.x - RECT_SIZE, point.y - RECT_SIZE, RECT_SIZE*2, RECT_SIZE*2);
           tmpCanvas.width = RECT_SIZE*2; tmpCanvas.height = RECT_SIZE*2;
           tmpCtx.putImageData(tmpImg, 0, 0);
-          if(this.previewImages[this.maps[i].tier] === undefined) this.previewImages[this.maps[i].tier] = [];
-          this.previewImages[this.maps[i].tier].push({
-            name: this.maps[i].name,
+          if(this.previewImages[this.$store.state.maps[i].tier] === undefined) this.previewImages[this.$store.state.maps[i].tier] = [];
+          this.previewImages[this.$store.state.maps[i].tier].push({
+            name: this.$store.state.maps[i].name,
             dataURL: tmpCanvas.toDataURL("image/png")
           });
         }
         this.atlasImage = canvas.toDataURL("image/png");
+      },
+      sortTable(a, b, key) {
+        if (key === 'completed') {
+          if (this.completedMaps.has(a) && this.completedMaps.has(b)) return 0;
+          if (this.completedMaps.has(a)) return -1;
+          return 1;
+        } else if (key === 'unique') {
+          if (a.unique && b.unique) return 0;
+          if (a.unique) return -1;
+          return 1;
+        } else return null;
       }
     }
   }
 </script>
+<style scoped>
+  .table-checkbox {
+    min-height: 1.1rem;
+  }
+</style>

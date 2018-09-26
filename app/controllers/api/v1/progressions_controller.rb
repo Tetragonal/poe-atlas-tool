@@ -4,8 +4,17 @@
 class Api::V1::ProgressionsController < ActionController::API
   def get
     user = User.find_by username: params[:account_name]
+    return head :not_found if user.nil?
+
+    # Filter by league id, if specified
+    if params[:league_id]
+      maps = AtlasProgression.where(user: user).where(league_id: params[:league_id]).select(:id, :map_id, :league_id)
+    else
+      maps = AtlasProgression.where(user: user).select(:id, :map_id, :league_id)
+    end
+
     render json: {
-      maps: AtlasProgression.where(user: user).select(:id, :map_id, :league_id)
+        maps: maps
     }.to_json
   end
 

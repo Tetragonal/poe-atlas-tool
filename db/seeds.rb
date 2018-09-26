@@ -67,13 +67,21 @@ if Rails.env.development?
   map_count = Map.where('atlas_version = ' + Settings.ATLAS_VERSION.to_s).count
   puts map_count
 
+  # Test user
+  User.create(
+      username: 'user',
+      last_character_name: 'char',
+      api_key: 'key',
+      public_until: 1.years.from_now
+  )
+
   Settings.DEV_SEED_NUM.times do |i|
     puts 'User #' + i.to_s
     user = User.create(
       username: Faker::Name.unique.first_name,
       last_character_name: Faker::Name.unique.last_name,
       api_key: SecureRandom.uuid,
-      public_until: 1.days.from_now
+      public_until: 1.years.from_now
     )
 
     # Make user's stashed maps
