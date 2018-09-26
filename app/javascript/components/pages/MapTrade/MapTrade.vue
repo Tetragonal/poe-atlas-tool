@@ -14,7 +14,11 @@
 
     <div v-else>
       <b-card header="Map Trade">
-        Placeholder
+        <b-alert :show="!$store.state.apiKey" variant="warning">
+          To save your progression, you must be logged in.
+          <br>
+          Doing this will allow you to easily search for users to trade with.
+        </b-alert>
         <b-table striped hover small :items="tradeTableData" :fields="tradeTableFields" :sort-compare="sortTable">
           <template slot="completed" slot-scope="data">
             {{data.item.raw.progressions.length}}
@@ -23,9 +27,14 @@
             {{data.item.stashedMaps.length}}
           </template>
           <template slot="trade" slot-scope="data">
-            <b-button>Trade ({{data.item.diff.reduce((sum, d) => sum + Math.min(d.ownMaps.length, d.theirMaps.length), 0)}})</b-button>
+            <b-button size="sm" @click.stop="openModal(data.item, $event.target)" class="mr-1">
+              Trade ({{data.item.diffTotal}})
+            </b-button>
           </template>
         </b-table>
+
+        <!-- Trade Modal -->
+        <trade-modal ref="tradeModal" :content="tradeModalData" ok-only></trade-modal>
 
         <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
           <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
@@ -37,9 +46,11 @@
 
 <script>
   import api from '../../../api.js';
+  import TradeModal from "./TradeModal";
 
   export default {
     name: "MapTrade",
+    components: {TradeModal},
     data() {
       return {
         ownProgression: undefined,
@@ -67,6 +78,8 @@
             sortable: true
           }
         ],
+
+        tradeModalData: undefined
       }
     },
     watch: {
@@ -107,8 +120,8 @@
           for (let i = this.$store.getters.minTier; i <= this.$store.getters.maxTier; i++) {
             diff.push({
               tier: i,
-              ownMaps: this.ownStashedMaps.filter(map => i === this.$store.getters.mapIdToTier[map.map_id] && !userProgressionSet.has(map.map_id) && !userStashedMapSet.has(map.map_id)),
-              theirMaps: user.stashed_maps.filter(mapId => i === this.$store.getters.mapIdToTier[mapId] && !ownProgressionSet.has(mapId) && !ownStashedMapIds.has(mapId)),
+              ownMaps: Array.from(ownStashedMapIds).filter(mapId => !this.$store.getters.mapIdToUnique[mapId] && i === this.$store.getters.mapIdToTier[mapId] && !userProgressionSet.has(mapId) && !userStashedMapSet.has(mapId)),
+              theirMaps: user.stashed_maps.filter(mapId => !this.$store.getters.mapIdToUnique[mapId] && i === this.$store.getters.mapIdToTier[mapId] && !ownProgressionSet.has(mapId) && !ownStashedMapIds.has(mapId)),
             });
           }
 
@@ -119,7 +132,8 @@
             uncompletedMaps: uncompletedMaps,
             stashedMaps: user.stashed_maps,
 
-            diff: diff
+            diff: diff,
+            diffTotal: diff.reduce((sum, d) => sum + Math.min(d.ownMaps.length, d.theirMaps.length), 0)
 
           });
         }
@@ -146,11 +160,17 @@
             return a.raw.progressions.length - b.raw.progressions.length;
           case 'mapsOwned':
             return a.stashedMaps.length - b.stashedMaps.length;
+          case 'trade':
+            return a.diffTotal - b.diffTotal;
           default:
             return null;
         }
       },
-      log(d){console.log(JSON.stringify(d))}
+      openModal (data, content){
+        this.tradeModalData = data;
+        this.tradeModalData.league = this.selectedLeague;
+        this.$refs.tradeModal.show()
+      }
     }
   }
 </script>

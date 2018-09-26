@@ -1,6 +1,6 @@
 <template>
   <div>
-    Progressions
+    Progressions Placeholder
   </div>
 </template>
 

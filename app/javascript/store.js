@@ -36,6 +36,20 @@ export default new Vuex.Store({
         map[obj.id] = obj.tier;
         return map;
       }, {});
+    },
+    mapIdToName: state => {
+      if(state.maps === undefined || state.maps.length === 0) return undefined;
+      return state.maps.reduce((map, obj) => {
+        map[obj.id] = obj.name;
+        return map;
+      }, {});
+    },
+    mapIdToUnique: state => {
+      if(state.maps === undefined || state.maps.length === 0) return undefined;
+      return state.maps.reduce((map, obj) => {
+        map[obj.id] = obj.unique;
+        return map;
+      }, {});
     }
   },
   mutations: {

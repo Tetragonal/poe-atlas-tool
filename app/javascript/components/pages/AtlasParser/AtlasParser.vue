@@ -28,7 +28,7 @@
             </h3>
 
             <b-alert show variant="warning">
-              Note that results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
+              Right now the results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
               <br>
               If the image is not aligned properly, try taking the screenshot again in fullscreen mode.
             </b-alert>
@@ -88,7 +88,7 @@
             <b-alert :show="!$store.state.apiKey" variant="warning">
               To save your progression, you must be logged in.
               <br>
-              Doing this will allow you to easily search for users to trade with.
+              Doing this will let you search for users with similar atlas progression to trade with.
             </b-alert>
             <div>
               <b-button-group>
@@ -108,8 +108,21 @@
 
           <!-- Completed maps-->
           <div class="card-body">
-            <b-card header="Completed Maps">
+            <b-card>
+              <div slot="header">
+                Atlas Progression
+                <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
+                  <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+                </b-dropdown>
+                <b-button size="sm" @click="openTab(generateTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique(id))))">Open Trade Link</b-button>
+              </div>
               <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
+                <template slot="HEAD_selected" slot-scope="data">
+                  <b-form-checkbox @click.native.stop v-model="allSelected" class="table-checkbox"></b-form-checkbox>
+                </template>
+                <template slot="selected" slot-scope="data">
+                  <b-form-checkbox v-model="checked[data.item.id]" v-if="!completedMaps.has(data.item)" class="table-checkbox"></b-form-checkbox>
+                </template>
                 <template slot="unique" slot-scope="data">
                   <b-badge pill variant="warning">{{ data.item.unique ? 'Unique' : '' }}</b-badge>
                 </template>
@@ -152,6 +165,10 @@
 
         mapTableFields: [
           {
+            key: 'selected',
+            sortable: false
+          },
+          {
             key: 'name',
             sortable: true
           },
@@ -168,14 +185,31 @@
             sortable: true,
           }
         ],
+        checked: {},
+        allSelected: false,
+        selectedLeague: undefined
       }
     },
     watch: {
       atlasFile() {
         this.readImage();
+      },
+      allSelected(newVal) {
+        for (let map of this.$store.state.maps) {
+          this.selected[map.id] = newVal;
+        }
       }
     },
     computed: {
+      selectedIds() {
+        let selected = [];
+        for (let id in this.checked) {
+          if (this.checked[id]) {
+            seletced.push(id);
+          }
+        }
+        return selected;
+      },
       lowestUncompletedMap() {
         if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;
@@ -345,3 +379,8 @@
     }
   }
 </script>
+<style scoped>
+  .table-checkbox {
+    min-height: 1.1rem;
+  }
+</style>

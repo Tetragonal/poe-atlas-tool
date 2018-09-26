@@ -22,6 +22,7 @@ For now,
     rake db:seed
     
     # Run server
+    ruby .\bin\webpack-dev-server
     rails s
     
 ## Production setup
