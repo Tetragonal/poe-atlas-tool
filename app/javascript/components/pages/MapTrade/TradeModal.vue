@@ -73,11 +73,6 @@
     methods: {
       show() {
         this.$refs.tradeModal.show();
-      },
-      copyTrade(data) {
-        console.log(data);
-        //this.$copyText
-        console.log(this.generateTradeWhisper(this.content.name, this.content.league.name, data.item.tier, data.item.ownMaps, data.item.theirMaps));
       }
     }
   }

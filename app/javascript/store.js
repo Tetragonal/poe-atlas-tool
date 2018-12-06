@@ -9,9 +9,10 @@ export default new Vuex.Store({
   state: {
     username: undefined,
     apiKey: undefined,
+    progressions: undefined,
 
     maps: undefined,
-    leagues: undefined
+    leagues: undefined,
   },
   getters: {
     minTier: state => {
@@ -62,6 +63,7 @@ export default new Vuex.Store({
     logout(state) {
       state.username = undefined;
       state.apiKey = undefined;
+      state.progressions = undefined;
     },
     async loadAtlasData(state) {
       let mapPromise = api.maps.get();
@@ -70,5 +72,8 @@ export default new Vuex.Store({
       state.maps = (await mapPromise).data.maps;
       state.leagues = (await leaguePromise).data.leagues;
     },
+    async refreshProgressions(state, id) {
+      state.progressions = new Set((await api.progressions.get(state.username, id)).data.maps.map((key) => key.map_id));
+    }
   }
 });

@@ -111,17 +111,26 @@
             <b-card>
               <div slot="header">
                 Atlas Progression
-                <b-dropdown :text="selectedLeague ? selectedLeague.name : 'Select league'">
+                <b-dropdown style="margin-left:10px" size="sm" :text="selectedLeague ? selectedLeague.name : 'Select league'">
                   <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
                 </b-dropdown>
-                <b-button size="sm" @click="openTab(generateTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique(id))))">Open Trade Link</b-button>
+                <b-button size="sm"
+                          :disabled="selectedLeague === undefined || selectedIds.length === 0"
+                          @click="openTab(generateTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique[id])))">
+                  Official
+                </b-button>
+                <b-button size="sm"
+                          :disabled="selectedLeague === undefined || selectedIds.length === 0"
+                          @click="openTab(generatePoeAppTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique[id])))">
+                  POEApp
+                </b-button>
               </div>
               <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
                 <template slot="HEAD_selected" slot-scope="data">
                   <b-form-checkbox @click.native.stop v-model="allSelected" class="table-checkbox"></b-form-checkbox>
                 </template>
                 <template slot="selected" slot-scope="data">
-                  <b-form-checkbox v-model="checked[data.item.id]" v-if="!completedMaps.has(data.item)" class="table-checkbox"></b-form-checkbox>
+                  <b-form-checkbox v-model="checked[data.item.id]" v-if="!completedMaps.has(data.item) && !$store.getters.mapIdToUnique[data.item.id]" class="table-checkbox"></b-form-checkbox>
                 </template>
                 <template slot="unique" slot-scope="data">
                   <b-badge pill variant="warning">{{ data.item.unique ? 'Unique' : '' }}</b-badge>
@@ -186,8 +195,8 @@
           }
         ],
         checked: {},
+        selectedIds: [],
         allSelected: false,
-        selectedLeague: undefined
       }
     },
     watch: {
@@ -196,20 +205,23 @@
       },
       allSelected(newVal) {
         for (let map of this.$store.state.maps) {
-          this.selected[map.id] = newVal;
+          this.$set(this.checked, map.id, newVal);
         }
+      },
+      checked: {
+        handler(newVal){
+          let selected = [];
+          for (let id in newVal) {
+            if (newVal[id]) {
+              selected.push(id);
+            }
+          }
+          this.selectedIds = selected;
+        },
+        deep: true
       }
     },
     computed: {
-      selectedIds() {
-        let selected = [];
-        for (let id in this.checked) {
-          if (this.checked[id]) {
-            seletced.push(id);
-          }
-        }
-        return selected;
-      },
       lowestUncompletedMap() {
         if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;
