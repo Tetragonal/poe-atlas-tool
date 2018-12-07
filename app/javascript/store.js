@@ -12,6 +12,8 @@ export default new Vuex.Store({
     progressions: undefined,
 
     maps: undefined,
+    poeTradeMaps: undefined,
+    poeTradeCurrency: undefined,
     leagues: undefined,
   },
   getters: {
@@ -69,7 +71,11 @@ export default new Vuex.Store({
       let mapPromise = api.maps.get();
       let leaguePromise = api.leagues.get();
 
-      state.maps = (await mapPromise).data.maps;
+      let mapPromiseData = (await mapPromise).data;
+      state.maps = mapPromiseData.maps;
+      state.poeTradeMaps = mapPromiseData.poe_trade_maps;
+      state.poeTradeCurrency = mapPromiseData.poe_trade_currency;
+
       state.leagues = (await leaguePromise).data.leagues;
     },
     async refreshProgressions(state, id) {

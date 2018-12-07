@@ -30,5 +30,5 @@ Rails.application.routes.draw do
   end
 
   root to: 'landing#index'
-  match '*path', to: 'landing#index', format: false, via: :get, constraints: lambda{ |req| !req.env['PATH_INFO'].start_with?('/api') }
+  match '*path', to: 'landing#index', format: false, via: :get, constraints: ->(req) { !req.env['PATH_INFO'].start_with?('/api') }
 end

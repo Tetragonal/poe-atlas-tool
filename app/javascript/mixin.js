@@ -50,12 +50,18 @@ const serialize = (obj) => {
 
 // TODO
 const mapIdsToPoeTradeQuery = (mapIds) => {
-  return '-'.join();
+  let mapNames = mapIds.map(x => store.getters.mapIdToName[x]);
+  return mapNames.map(x => store.state.poeTradeMaps[x]).join('-');
 };
 
 // TODO
 const getPoeTradeCurrencies = () => {
-  return undefined;
+  let currencies = [
+    store.state.poeTradeCurrency['chaos'],
+    store.state.poeTradeCurrency['alchemy'],
+    store.state.poeTradeCurrency['chisel']
+  ];
+  return currencies.join('-');
 };
 
 Vue.mixin({
@@ -79,7 +85,7 @@ Vue.mixin({
     },
     generatePoeTradeLink: (leagueName, mapIds) => {
       let queryObj = Object.assign({}, POETRADE_PARAMS_OBJ);
-      queryObj.league = leagueName.toLowerCase();
+      queryObj.league = leagueName;
       queryObj.want = mapIdsToPoeTradeQuery(mapIds);
       queryObj.have = getPoeTradeCurrencies();
       return POETRADE_BASE + serialize(queryObj);

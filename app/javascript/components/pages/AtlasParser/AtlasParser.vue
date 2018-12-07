@@ -28,9 +28,9 @@
             </h3>
 
             <b-alert show variant="warning">
-              Right now the results aren't always accurate. Check the Map Preview section to verify that the parsing has been done correctly.
+              Make sure to check the Map Preview section to verify that the parsing has been done correctly.
               <br>
-              If the image is not aligned properly, try taking the screenshot again in fullscreen mode.
+              If the image does not align with the maps, try taking the screenshot again in fullscreen mode.
             </b-alert>
 
             <b-card-group deck>
@@ -110,22 +110,32 @@
           <div class="card-body">
             <b-card>
               <div slot="header">
-                Atlas Progression
-                <b-dropdown style="margin-left:10px" size="sm" :text="selectedLeague ? selectedLeague.name : 'Select league'">
-                  <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
-                </b-dropdown>
-                <b-button size="sm"
-                          :disabled="selectedLeague === undefined || selectedIds.length === 0"
-                          @click="openTab(generateTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique[id])))">
-                  Official
-                </b-button>
-                <b-button size="sm"
-                          :disabled="selectedLeague === undefined || selectedIds.length === 0"
-                          @click="openTab(generatePoeAppTradeLink(selectedLeague.name, selectedIds.filter(id => !$store.getters.mapIdToUnique[id])))">
-                  POEApp
-                </b-button>
+                <b-row>
+                  <b-col>Trade Helper</b-col>
+                  <b-col class="text-right">
+                    <b-form-checkbox v-model="hideCompleted">Hide completed</b-form-checkbox>
+                    <b-dropdown size="sm" :text="selectedLeague ? selectedLeague.name : 'Select league'">
+                      <b-dropdown-item v-for="elem in $store.state.leagues" @click="selectedLeague = elem">{{ elem.name }}</b-dropdown-item>
+                    </b-dropdown>
+                    <b-button size="sm"
+                              :disabled="selectedLeague === undefined || selectedIds.length === 0"
+                              @click="openTab(generateTradeLink(selectedLeague.name, selectedIds))">
+                      Official
+                    </b-button>
+                    <b-button size="sm"
+                              :disabled="selectedLeague === undefined || selectedIds.length === 0"
+                              @click="openTab(generatePoeAppTradeLink(selectedLeague.name, selectedIds))">
+                      PoEApp
+                    </b-button>
+                    <b-button size="sm"
+                              :disabled="selectedLeague === undefined || selectedIds.length === 0"
+                              @click="openTab(generatePoeTradeLink(selectedLeague.name, selectedIds))">
+                      PoETrade
+                    </b-button>
+                  </b-col>
+                </b-row>
               </div>
-              <b-table striped hover small :items="$store.state.maps" :fields="mapTableFields" :sort-compare="sortTable">
+              <b-table striped hover small :items="filteredMaps" :fields="mapTableFields" :sort-compare="sortTable" :fixed="true">
                 <template slot="HEAD_selected" slot-scope="data">
                   <b-form-checkbox @click.native.stop v-model="allSelected" class="table-checkbox"></b-form-checkbox>
                 </template>
@@ -175,7 +185,8 @@
         mapTableFields: [
           {
             key: 'selected',
-            sortable: false
+            sortable: false,
+            thStyle: {width: '100px'}
           },
           {
             key: 'name',
@@ -197,6 +208,7 @@
         checked: {},
         selectedIds: [],
         allSelected: false,
+        hideCompleted: false
       }
     },
     watch: {
@@ -222,6 +234,11 @@
       }
     },
     computed: {
+      filteredMaps() {
+        return this.hideCompleted
+            ? this.$store.state.maps.filter(x => !this.completedMaps.has(x))
+            : this.$store.state.maps;
+      },
       lowestUncompletedMap() {
         if(this.$store.state.maps === undefined) return undefined;
         let lowestMap = undefined;
