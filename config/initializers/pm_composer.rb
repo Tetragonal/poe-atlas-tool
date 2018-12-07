@@ -1,4 +1,4 @@
-  require 'nokogiri'
+require 'nokogiri'
 require 'http'
 
 # Periodically refresh PoE compose webpage to maintain an updated security token

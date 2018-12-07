@@ -20,6 +20,14 @@ const POEAPP_QUERY_OBJ = {
   "have":["Chaos Orb", "Cartographer's Chisel", "Orb of Alchemy"]
 };
 
+const POETRADE_BASE = 'http://currency.poe.trade/search?';
+const POETRADE_PARAMS_OBJ = {
+  "league": "Delve",
+  "online": "x",
+  "stock": "",
+  "want": "4-5",
+  "have": "3-4"
+};
 
 const mapNameToQuery = (mapName) => {
   return mapName.toLowerCase().split(' ').join('-') + '-map';
@@ -27,6 +35,27 @@ const mapNameToQuery = (mapName) => {
 
 const mapNameToPoeAppQuery = (mapName) => {
   return mapName + " Map"; // Doesn't work for unique maps
+};
+
+// https://stackoverflow.com/questions/1714786/query-string-encoding-of-a-javascript-object
+const serialize = (obj) => {
+  let str = [];
+  for (let p in obj)
+    if (obj.hasOwnProperty(p)) {
+      str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
+    }
+  return str.join("&");
+};
+
+
+// TODO
+const mapIdsToPoeTradeQuery = (mapIds) => {
+  return '-'.join();
+};
+
+// TODO
+const getPoeTradeCurrencies = () => {
+  return undefined;
 };
 
 Vue.mixin({
@@ -47,7 +76,13 @@ Vue.mixin({
         queryObj.need.push(mapNameToPoeAppQuery(mapName));
       }
       return POEAPP_BASE + encodeURIComponent(JSON.stringify(queryObj));
-
+    },
+    generatePoeTradeLink: (leagueName, mapIds) => {
+      let queryObj = Object.assign({}, POETRADE_PARAMS_OBJ);
+      queryObj.league = leagueName.toLowerCase();
+      queryObj.want = mapIdsToPoeTradeQuery(mapIds);
+      queryObj.have = getPoeTradeCurrencies();
+      return POETRADE_BASE + serialize(queryObj);
     },
     generateTradeWhisper: (lastCharacterName, leagueName, tier, ownMaps, theirMaps) => {
       return '@' + lastCharacterName + ' Hi, I would like to trade the following tier ' + tier + ' maps in ' + leagueName + ': My [' + ownMaps.join(', ') + '] for your [' + theirMaps.join(', ') + ']';
