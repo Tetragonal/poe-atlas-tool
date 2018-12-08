@@ -48,13 +48,12 @@ class PmComposer
     request['Connection'] = 'keep-alive'
     request['Upgrade-Insecure-Requests'] = '1'
     request.set_form_data(
-      'add_recipient' => recipient,
-      'bcc_recipients[total_accounts]' => '0',
       'content' => content,
       'hash' => @hash,
+      'recipients' => '',
       'subject' => subject,
       'submit' => 'Submit',
-      'to_recipients[total_accounts]' => '0'
+      'to_accounts[0]' => recipient
     )
 
     req_options = {
