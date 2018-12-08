@@ -5,7 +5,11 @@
         Map Trade
       </template>
       <template slot="lead">
-        Placeholder
+        A tool for exchanging duplicate same-tier maps with others. (WIP, but should partially work) <br> <br>
+        To try it out, do the following: <br>
+        1. To track what maps you need, link your PoE account (Account) and upload your atlas progression (Atlas Parser) <br>
+        2. To track what maps you have, put completed/duplicate maps in a public stash tab with b/o 111 blessed. <br>
+        3. Then, you can search for users to exchange maps with.
       </template>
       <hr class="my-4">
       <b-btn variant="info" v-b-modal.login-modal>Login</b-btn>
@@ -15,7 +19,7 @@
     <div v-else>
       <b-card header="Map Trade">
         <b-alert :show="!$store.state.apiKey" variant="warning">
-          To save your progression, you must be logged in.
+          To save your progression, link with your PoE account. (Account)
           <br>
           Doing this will allow you to easily search for users to trade with.
         </b-alert>
@@ -95,10 +99,6 @@
       }
     },
     computed: {
-      ownUncompletedMaps () {
-        if(this.$store.state.maps === undefined || this.ownProgression === undefined) return undefined;
-        return this.$store.state.maps.filter(map => !this.ownProgression.includes(map.id));
-      },
       tradeTableData () {
         if(this.ownProgression === undefined || this.ownStashedMaps === undefined || this.randomUsers === undefined) return undefined;
 

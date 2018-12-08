@@ -12,7 +12,8 @@
                   placeholder="Enter your PoE account name"
                   @keyup.enter.native="handleRegister"
                   class="mb-2"></b-form-input>
-    An API key will be sent to you via in-game mail, which you can use to log in.
+    An account key will be generated and sent to you via PoE's in-game mail, which you can use to log in.<br><br>
+    This tool isn't affiliated with PoE or GGG in any way, the key is used to link (in-game account <-> this site).
     <b-alert class="mt-2" :show="error" variant="danger">{{ errorText }}</b-alert>
   </b-modal>
 </template>

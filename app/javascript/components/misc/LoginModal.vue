@@ -12,6 +12,8 @@
                   :state="formText !== '' ? null : false"
                   placeholder="Enter your API key"
                   @keyup.enter.native="handleLogin"></b-form-input>
+    After linking your PoE account, paste the key sent to your in-game mail. <br>
+    (On the site, go to Private messages -> Inbox)
     <b-alert :show="error" variant="danger">{{ errorText }}</b-alert>
   </b-modal>
 </template>

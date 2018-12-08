@@ -30,7 +30,7 @@ Dir.foreach(atlas_path) do |filename|
     name = area_json[0]['data'][node[0]][1]
     x = node[1] - 8
     y = node[2] - 55
-    tier = node[10]
+    tier = node[9]
     is_unique = area_json[0]['data'][node[0]][69]
 
     printf "%-25s: x=%-20s y=%-20s tier=%-4s unique=%s\n",

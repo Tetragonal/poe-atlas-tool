@@ -88,7 +88,7 @@ class Api::V1::UsersController < ActionController::API
       # Send PM to user
       response = PmComposer.instance.compose(
         params[:account_name],
-        'API key',
+        'API key (poeatlastool.xyz)',
         api_key
       )
 

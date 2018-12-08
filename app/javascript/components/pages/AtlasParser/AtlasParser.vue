@@ -12,6 +12,16 @@
 
         <!-- Instructions -->
         <div v-if="atlasImage === undefined">
+          <b-alert show variant="warning">
+            The parser will only align properly with well-formatted or cropped fullscreen screenshots. <br>
+            If it doesn't work the first time, see below or try the demo to see an example formatted image.
+          </b-alert>
+          <b-alert show variant="secondary">
+            Instructions: <br>
+            Open the Atlas screen (Default keybind: G). Take and upload a screenshot with the game in fullscreen mode. <br> <br>
+            On Windows, you can switch to fullscreen with the shortcut Alt-Enter and use the Print Screen function. <br>
+            Alternatively, you can use Snipping Tool with the game in borderless fullscreen.
+          </b-alert>
           <b-button @click="setupDemo">
             Load demo
           </b-button>
@@ -39,7 +49,7 @@
                   {{ completedMaps.size }}/{{ $store.state.maps.length }} maps completed
                   ({{(100.0*completionStats.regular.completed/completionStats.regular.count).toFixed(0)}}%)
                 </h3>
-                <p class="card-text">
+                <p class="card-text" v-if="lowestUncompletedMap">
                   Lowest uncompleted map: {{ lowestUncompletedMap.name }} (Tier {{ lowestUncompletedMap.tier }})
                 </p>
 
