@@ -121,7 +121,13 @@
             <b-card>
               <div slot="header">
                 <b-row>
-                  <b-col>Trade Helper</b-col>
+                  <b-col>
+                    Trade Helper
+                    <b-button size="sm"
+                              style="margin-left:20px"
+                              v-clipboard="exportString"
+                              @success="copied = true">{{ copied ? 'Copied!' : 'Copy to clipboard' }}</b-button>
+                  </b-col>
                   <b-col class="text-right">
                     <b-form-checkbox v-model="hideCompleted">Hide completed</b-form-checkbox>
                     <b-dropdown size="sm" :text="selectedLeague ? selectedLeague.name : 'Select league'">
@@ -218,7 +224,8 @@
         checked: {},
         selectedIds: [],
         allSelected: false,
-        hideCompleted: false
+        hideCompleted: false,
+        copied: false
       }
     },
     watch: {
@@ -246,6 +253,11 @@
       }
     },
     computed: {
+      exportString() {
+        let completedMapNames = new Set(Array.from(this.completedMaps).map(x => x.name));
+        return '-----Completed:-----\n' + Array.from(completedMapNames).join('\n')
+            + '\n\n-----Uncompleted:-----\n' + Array.from(this.$store.state.maps).filter(x => !completedMapNames.has(x.name)).map(x => x.name).join('\n');
+      },
       filteredMaps() {
         return this.hideCompleted
             ? this.$store.state.maps.filter(x => !this.completedMaps.has(x))
