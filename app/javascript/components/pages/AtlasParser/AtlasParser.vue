@@ -227,7 +227,9 @@
       },
       allSelected(newVal) {
         for (let map of this.$store.state.maps) {
-          this.$set(this.checked, map.id, newVal);
+          if(newVal === false || !this.completedMaps.has(map) && !this.mapIdToUnique(map.id)){
+            this.$set(this.checked, map.id, newVal);
+          }
         }
       },
       checked: {
